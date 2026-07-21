@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MUSTNO — HTML Viewer</title>
+  <title>MUSTNO — Viewer</title>
   <meta name="description" content="MUSTNO HTML Viewer: HTML einfügen, formatieren, minifizieren, previewen, Datei laden und herunterladen." />
   <link rel="icon" type="image/png" href="logo.png?v=1">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  
+
   <script id="mustno-theme-init-inline">
     (function() {
       const activeTheme = localStorage.getItem('mustno-theme') || '';
@@ -57,7 +57,7 @@
       }
     })();
   </script>
-  
+
   <style>
     :root {
       --bg: #050b16;
@@ -65,7 +65,7 @@
       --panel: rgba(8, 17, 34, .84);
       --panel2: rgba(11, 24, 49, .72);
       --accent: #4a7aff;
-      --green: #5effa8; /* Wird strikt nur für Success & Auto-Update verwendet */
+      --green: #5effa8;
       --text: #e4edff;
       --dim: rgba(160,190,255,.54);
       --muted: rgba(80,110,185,.35);
@@ -77,6 +77,7 @@
       --font-mono: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       --radius: 18px;
       --shadow: 0 24px 90px rgba(0,0,0,.38);
+      --search-bg: color-mix(in srgb, var(--warning) 35%, transparent);
     }
 
     body.theme-wii {
@@ -106,6 +107,7 @@
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     html, body { min-height: 100%; }
     body {
       margin: 0; color: var(--text);
@@ -140,17 +142,38 @@
       background: color-mix(in srgb, var(--bg) 78%, transparent); backdrop-filter: blur(18px);
     }
 
-    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
-    .mark {
-      width: 34px; height: 34px; border-radius: 11px; border: 1px solid var(--border);
-      display: grid; place-items: center;
-      background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 22%, transparent), transparent), color-mix(in srgb, var(--panel) 88%, transparent);
-      box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 18%, transparent);
-      font: 700 13px var(--font-mono); color: var(--accent);
+    .head-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
+    
+    .logo {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(1rem, 1.3vw, 1.15rem);
+      font-weight: 700;
+      letter-spacing: .22em;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      transition: transform .22s ease;
     }
-
-    h1 { margin: 0; font-size: clamp(1rem, 2.1vw, 1.55rem); line-height: 1; letter-spacing: -.04em; text-transform: uppercase; white-space: nowrap; }
-    .sub { display: block; margin-top: 4px; color: var(--dim); font: 700 10px var(--font-mono); letter-spacing: .18em; text-transform: uppercase; }
+    .logo:hover {
+      transform: translateY(-1px) scale(1.04);
+      color: #fff;
+      text-shadow: 0 0 10px var(--accent);
+    }
+    .logo-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--accent);
+      margin-left: 1px;
+      animation: blink 1.4s step-end infinite;
+      box-shadow: 0 0 6px var(--accent);
+    }
+    .logo-app {
+      margin-left: 6px;
+      color: var(--accent);
+    }
+    @keyframes blink { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
 
     .head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
     select, button, input { font: 700 11px var(--font-mono); }
@@ -162,19 +185,14 @@
     }
     .control { padding: 0 10px; color: var(--dim); }
     .btn { padding: 0 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
-    
-    /* Hover nutzt jetzt IMMER die Accent-Farbe (ausser bei Gefahr) */
+
     .btn:hover, .control:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
-    
     .btn.primary { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: color-mix(in srgb, var(--accent) 14%, var(--panel)); color: var(--accent); }
-    
-    /* Grün explizit nur für Success Buttons (Download) */
     .btn.success { border-color: color-mix(in srgb, var(--green) 50%, transparent); background: color-mix(in srgb, var(--green) 14%, var(--panel)); color: var(--green); }
     .btn.success:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 12px color-mix(in srgb, var(--green) 20%, transparent); }
-    
     .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 
-    .workspace { min-height: 0; display: grid; grid-template-columns: minmax(320px, var(--split, 50%)) 8px minmax(320px, 1fr); gap: 0; padding: clamp(10px, 1.4vw, 18px); }
+    .workspace { position: relative; min-height: 0; display: grid; grid-template-columns: minmax(320px, var(--split, 50%)) 8px minmax(320px, 1fr); gap: 0; padding: clamp(10px, 1.4vw, 18px); }
     .panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(180deg, rgba(255,255,255,.04), transparent 34%), var(--panel); box-shadow: var(--shadow); overflow: hidden; backdrop-filter: blur(18px); }
     .panel-head { flex-shrink: 0; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--border); }
     .panel-title { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
@@ -182,41 +200,146 @@
     .meta { font: 700 10px var(--font-mono); color: var(--dim); letter-spacing: .08em; }
     .tools { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; justify-content: flex-end; }
     .toolbar { flex-shrink: 0; display: flex; flex-wrap: wrap; gap: 7px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--panel2) 72%, transparent); }
-    
+
     .toggle { display: inline-flex; align-items: center; gap: 8px; color: var(--dim); font: 700 10px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; padding: 0 9px; height: 34px; border: 1px solid var(--border); border-radius: 10px; user-select: none; cursor: pointer; }
-    /* Checkbox Hakenfarbe in Grün! */
     .toggle input { accent-color: var(--green); }
 
-    /* Datei-Tabs CSS */
-    .file-tabs-bar { flex-shrink: 0; display: flex; align-items: center; background: color-mix(in srgb, var(--panel2) 40%, transparent); border-bottom: 1px solid var(--border); overflow-x: auto; min-height: 34px; }
+    .file-tabs-bar { flex-shrink: 0; display: flex; align-items: center; background: color-mix(in srgb, var(--panel2) 40%, transparent); border-bottom: 1px solid var(--border); overflow-x: auto; min-height: 34px; position: relative; }
     .file-tabs-bar::-webkit-scrollbar { height: 4px; }
     .file-tabs-bar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    
-    .file-tab { height: 34px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; font: 700 11px var(--font-mono); color: var(--dim); background: transparent; border: none; border-right: 1px solid var(--border); cursor: pointer; transition: all .2s ease; white-space: nowrap; }
+
+    .file-tab { height: 34px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; font: 700 11px var(--font-mono); color: var(--dim); background: transparent; border: none; border-right: 1px solid var(--border); cursor: grab; transition: all .2s ease; white-space: nowrap; user-select: none; -webkit-user-select: none; }
+    .file-tab.dragging { opacity: .35; cursor: grabbing; }
+    .file-tab.drag-over { box-shadow: inset 2px 0 0 var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
     .file-tab:hover { color: var(--text); background: color-mix(in srgb, var(--panel) 50%, transparent); }
     .file-tab.active { color: var(--accent); background: color-mix(in srgb, var(--panel) 80%, transparent); box-shadow: inset 0 -2px 0 var(--accent); }
+
+    .tab-name-wrap { display: flex; align-items: center; gap: 6px; pointer-events: none; }
+    .tab-name-text { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; cursor: pointer; pointer-events: auto; }
     
-    .file-tab-close { background: transparent; border: none; color: inherit; cursor: pointer; padding: 2px; font-size: 12px; line-height: 1; opacity: 0.6; }
+    .file-tab-edit { background: transparent; border: none; color: inherit; cursor: pointer; padding: 2px; font-size: 11px; opacity: 0.5; line-height: 1; margin-left: 2px; transition: opacity .2s, color .2s; display: inline-block; vertical-align: middle; pointer-events: auto; }
+    .file-tab-edit:hover { opacity: 1; color: var(--accent); }
+
+    .file-tab-close { background: transparent; border: none; color: inherit; cursor: pointer; padding: 2px; font-size: 12px; line-height: 1; opacity: 0.6; pointer-events: auto; }
     .file-tab-close:hover { opacity: 1; color: var(--danger); }
-    
-    .add-tab-btn { height: 34px; background: transparent; border: none; border-right: 1px solid var(--border); color: var(--dim); cursor: pointer; padding: 0 14px; font: 700 14px var(--font-mono); transition: all .2s ease; }
+
+    .add-tab-btn { height: 34px; background: transparent; border: none; border-right: 1px solid var(--border); color: var(--dim); cursor: pointer; padding: 0 14px; font: 700 14px var(--font-mono); transition: all .2s ease; flex-shrink: 0; z-index: 5; position: relative; }
     .add-tab-btn:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
-    .editor-wrap { flex: 1; min-height: 0; display: grid; grid-template-columns: 48px 1fr; background: color-mix(in srgb, var(--bg) 64%, black 12%); }
-    .lines { padding: 14px 8px 18px 0; color: color-mix(in srgb, var(--dim) 64%, transparent); font: 400 13px/1.55 var(--font-mono); text-align: right; overflow: hidden; user-select: none; border-right: 1px solid color-mix(in srgb, var(--border) 65%, transparent); background: color-mix(in srgb, var(--bg) 72%, transparent); }
-    textarea { width: 100%; height: 100%; min-height: 0; border: 0; outline: 0; resize: none; padding: 14px 16px 18px; background: transparent; color: var(--text); font: 400 13px/1.55 var(--font-mono); tab-size: var(--tab-size, 2); caret-color: var(--accent); white-space: pre; overflow: auto; }
-    textarea::selection { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+    .tab-rename-input { height: 22px; font: 700 11px var(--font-mono); background: color-mix(in srgb, var(--bg) 60%, transparent); color: var(--text); border: 1px solid var(--accent); border-radius: 4px; padding: 0 4px; width: 130px; outline: none; pointer-events: auto; }
 
-    .preview-wrap { flex: 1; min-height: 0; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; background: linear-gradient(45deg, color-mix(in srgb, var(--muted) 26%, transparent) 25%, transparent 25% 75%, color-mix(in srgb, var(--muted) 26%, transparent) 75%), linear-gradient(45deg, color-mix(in srgb, var(--muted) 26%, transparent) 25%, transparent 25% 75%, color-mix(in srgb, var(--muted) 26%, transparent) 75%); background-position: 0 0, 12px 12px; background-size: 24px 24px; padding: 14px; }
-    iframe { display: block; width: var(--device-width, 100%); max-width: 100%; height: 100%; margin: 0 auto; border: 1px solid var(--border); border-radius: 14px; background: #fff; box-shadow: 0 18px 50px rgba(0,0,0,.28); transition: width 0.3s ease; }
-    .output-source { display: none; height: 100%; width: 100%; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--bg) 72%, black 18%); overflow: hidden; }
-    .output-source textarea { color: var(--accent); }
-    .preview-wrap.show-source iframe { display: none; }
+    .editor-wrap { position: relative; flex: 1; min-height: 0; display: flex; background: color-mix(in srgb, var(--bg) 64%, black 12%); overflow: hidden; }
+    .lines { padding: 16px 8px 32px 0; margin: 0; color: color-mix(in srgb, var(--dim) 64%, transparent); font: 400 13px/21px var(--font-mono); text-align: right; user-select: none; border-right: 1px solid color-mix(in srgb, var(--border) 65%, transparent); background: color-mix(in srgb, var(--bg) 72%, transparent); flex: 0 0 48px; overflow: hidden; box-sizing: border-box; }
+    
+    .input-layer-wrap { position: relative; flex: 1; min-width: 0; min-height: 0; display: block; }
+    .input-overlay { position: absolute; inset: 0; margin: 0; padding: 16px 16px 32px 16px; pointer-events: none; white-space: pre; font: 400 13px/21px var(--font-mono); color: transparent; tab-size: var(--tab-size, 2); overflow: hidden; overflow-wrap: normal; word-wrap: normal; z-index: 1; box-sizing: border-box; }
+    
+    /* FIX: Ein 400px Puffer verhindert, dass das JS-Scrolling der Overlays beim "Rubber-Banding" oder am Ende der Datei frühzeitig abschneidet (clamped). */
+    .input-overlay::after, .lines::after { content: ""; display: block; height: 400px; width: 1px; }
+
+    /* FIX für das Doppel-Text Problem beim Suchen */
+    .input-layer-wrap.colored .input-overlay:not(.search-overlay) { color: var(--text); }
+    
+    textarea { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; border: 0; outline: 0; resize: none; padding: 16px 16px 32px 16px; background: transparent; color: var(--text); font: 400 13px/21px var(--font-mono); tab-size: var(--tab-size, 2); caret-color: var(--accent); white-space: pre; overflow: auto; z-index: 2; box-sizing: border-box; appearance: none; -webkit-appearance: none; overscroll-behavior: none; }
+    textarea::selection { background: var(--search-bg); }
+    textarea.colored-mode { color: transparent !important; }
+
+    .search-bar { 
+        position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 100; 
+        display: flex; flex-direction: column; gap: 8px; 
+        padding: 8px 12px; width: max-content; min-width: 450px;
+        background: rgba(8, 17, 34, 0.85); 
+        border: 1px solid rgba(74, 122, 255, 0.4); border-radius: 12px; 
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .search-bar.show { opacity: 1; pointer-events: auto; }
+    .search-row { display: flex; align-items: center; gap: 8px; width: 100%; }
+    .search-advanced { display: none; align-items: center; gap: 8px; border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent); padding-top: 8px; }
+    .search-advanced.show { display: flex; }
+    .search-divider { width: 1px; height: 20px; background: color-mix(in srgb, var(--border) 60%, transparent); margin: 0 4px; }
+    
+    .search-drag-handle { cursor: grab; padding: 4px; color: var(--dim); font-size: 14px; user-select: none; display: grid; place-items: center; line-height: 1; }
+    .search-drag-handle:active { cursor: grabbing; }
+    .search-bar input[type="text"] { height: 28px; border-radius: 6px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 60%, transparent); color: var(--text); padding: 0 8px; font: 400 11px var(--font-mono); outline: none; }
+    .search-bar input[type="text"]:focus { border-color: var(--accent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent); }
+    #searchInput { width: 180px; flex: 1; }
+    #replaceInput { width: 150px; }
+    .search-bar .btn { height: 28px; padding: 0 10px; font-size: 11px; }
+    .search-bar .btn-icon { width: 28px; padding: 0; display: grid; place-items: center; font-weight: bold; }
+    .search-count { font: 700 10px var(--font-mono); color: var(--dim); min-width: 40px; text-align: center; }
+    
+    .color-picker-small { width: 26px; height: 26px; padding: 0; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; background: transparent; }
+    .color-hex-small { width: 65px; height: 26px; border-radius: 4px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: var(--text); font: 700 11px var(--font-mono); outline: none; padding: 0 6px; }
+    
+    /* FIX für das Doppel-Text Problem beim Suchen */
+    .search-overlay { z-index: 1; color: transparent !important; }
+    .search-overlay mark { background-color: var(--search-bg); border-radius: 2px; color: transparent !important; }
+    .search-overlay mark.current { box-shadow: 0 0 0 1px var(--accent) inset; }
+
+    .preview-wrap { flex: 1; min-height: 0; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden !important; background: linear-gradient(45deg, color-mix(in srgb, var(--muted) 26%, transparent) 25%, transparent 25% 75%, color-mix(in srgb, var(--muted) 26%, transparent) 75%), linear-gradient(45deg, color-mix(in srgb, var(--muted) 26%, transparent) 25%, transparent 25% 75%, color-mix(in srgb, var(--muted) 26%, transparent) 75%); background-position: 0 0, 12px 12px; background-size: 24px 24px; padding: 14px; }
+    
+    #scaleWrap { position: relative; flex: 0 0 auto; box-sizing: content-box; border: 1px solid var(--border); border-radius: 14px; background: transparent; overflow: visible; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    iframe { display: block; position: absolute; top: 0; left: 0; transform-origin: 0 0; border: none; background: #fff; box-shadow: 0 18px 50px rgba(0,0,0,.28); border-radius: 14px; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    
+    .output-source { display: none; position: absolute; inset: 0; height: 100%; width: 100%; min-height: 0; border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--bg) 72%, black 18%); overflow: auto; z-index: 2; }
+    .source-flex-container { display: flex; min-width: max-content; min-height: 100%; }
+    .preview-wrap.show-source #scaleWrap { display: none !important; }
     .preview-wrap.show-source .output-source { display: block; }
+    
+    .src-lines { padding: 16px 8px 32px 14px; margin: 0; color: color-mix(in srgb, var(--dim) 64%, transparent); font: 400 13px/21px var(--font-mono); text-align: right; user-select: none; border-right: 1px solid color-mix(in srgb, var(--border) 65%, transparent); background: color-mix(in srgb, var(--bg) 72%, transparent); flex-shrink: 0; position: sticky; left: 0; z-index: 5; box-sizing: border-box; }
+    .src-code { padding: 16px 16px 32px; margin: 0; overflow: visible; font: 400 13px/21px var(--font-mono); white-space: pre; color: var(--text); flex-grow: 1; box-sizing: border-box; }
+    
+    .tok-tag { color: var(--accent); font-weight: 700; }
+    .tok-attr { color: var(--green); }
+    .tok-string { color: var(--warning); }
+    .tok-comment { color: var(--dim); font-style: italic; }
+    .tok-punct { color: color-mix(in srgb, var(--text) 60%, transparent); }
+    .tok-keyword { color: var(--danger); font-weight: 700; }
+    .tok-number { color: #ff99cc; }
+    .tok-fn { color: #00f0ff; }
+    .tok-var { color: #a0beff; }
+    .tok-plain { color: var(--text); }
+
+    body.theme-wii .tok-tag { color: #0077a6; } /* Darker blue for contrast */
+    body.theme-wii .tok-attr { color: #006699; } /* Darker green-blue for attributes */
+    body.theme-wii .tok-string { color: #c48000; } /* Darker yellow/orange for strings */
+    body.theme-wii .tok-keyword { color: #cc0033; } /* Darker red for keywords */
+    body.theme-wii .tok-number { color: #a80052; } /* Darker pink for numbers */
+    body.theme-wii .tok-fn { color: #0088aa; } /* Darker cyan for functions */
+    body.theme-wii .tok-var { color: #335599; } /* Darker blue-gray for variables */
+    body.theme-wii .tok-punct { color: #666; } /* Darker gray for punctuation */
 
     .resizer { cursor: col-resize; display: grid; place-items: center; z-index: 3; }
     .resizer::before { content: ""; width: 2px; height: min(280px, 56vh); border-radius: 999px; background: color-mix(in srgb, var(--border) 88%, transparent); transition: background .2s, width .2s; }
     .resizer:hover::before { width: 4px; background: var(--accent); box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 40%, transparent); }
+
+    .dd { position: relative; display: inline-flex; }
+    .dd-trigger { gap: 8px; }
+    .dd-caret { font-size: 9px; opacity: .7; }
+    .dd-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 15; min-width: 250px; max-width: 320px; max-height: 55vh; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--panel) 96%, black 4%); box-shadow: var(--shadow); backdrop-filter: blur(18px); }
+    .dd-menu::-webkit-scrollbar { width: 6px; }
+    .dd-menu::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+    .dd-menu-right { left: auto; right: 0; }
+    .dd-item { text-align: left; background: transparent; border: 0; border-radius: 8px; padding: 9px 10px; color: var(--text); font: 700 11px var(--font-mono); cursor: pointer; white-space: normal; line-height: 1.3; }
+    .dd-item:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+    .dd-item.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 2px 0 0 var(--accent); }
+    
+    #presetList { display: contents; }
+    
+    .dd-custom-panel { display: none; flex-direction: column; gap: 8px; padding: 0 2px; margin-top: 0; border-top: 0 solid var(--border); }
+    .dd-custom-panel.open { display: flex; margin-top: 4px; padding: 10px 2px; border-top-width: 1px; }
+    
+    .dd-custom-row { display: flex; align-items: center; gap: 6px; }
+    .dd-custom-row input[type="number"], .dd-custom-row input[type="text"] { flex: 1; min-width: 0; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 60%, transparent); color: var(--text); padding: 0 8px; outline: none; font: 700 11px var(--font-mono); }
+    .dd-custom-row input:focus { border-color: var(--accent); }
+    .dd-x { color: var(--dim); font: 700 11px var(--font-mono); flex: 0 0 auto; }
+    .toggle.small { height: 28px; }
+    .dd-hint { font: 700 9px var(--font-mono); color: var(--dim); letter-spacing: .04em; }
+    .dd-split { gap: 0; }
+    .dd-split-main { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 1px solid color-mix(in srgb, var(--green) 30%, transparent); }
+    .dd-split-caret { border-top-left-radius: 0; border-bottom-left-radius: 0; width: 26px; padding: 0; justify-content: center; }
 
     footer { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 0 clamp(14px, 2vw, 28px); border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 76%, transparent); font: 700 10px var(--font-mono); color: var(--dim); text-transform: uppercase; letter-spacing: .10em; overflow: hidden; }
     .status { display: flex; gap: 14px; white-space: nowrap; min-width: 0; }
@@ -224,8 +347,24 @@
 
     .toast { position: fixed; right: 18px; bottom: 48px; z-index: 20; min-width: 240px; max-width: min(420px, calc(100vw - 32px)); padding: 12px 14px; border: 1px solid var(--border2); border-radius: 14px; background: color-mix(in srgb, var(--panel) 92%, black 8%); box-shadow: var(--shadow); color: var(--text); font: 700 11px/1.4 var(--font-mono); opacity: 0; transform: translateY(10px); pointer-events: none; transition: opacity .22s ease, transform .22s ease; }
     .toast.show { opacity: 1; transform: translateY(0); }
-    .url-pop { position: fixed; inset: 0; z-index: 30; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.55); backdrop-filter: blur(10px); }
-    .url-pop.show { display: flex; }
+
+    .calib-modal { position: fixed; inset: 0; z-index: 35; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(10px); }
+    .calib-modal.show { display: flex; }
+    .calib-box { width: min(420px, 100%); border: 1px solid var(--border2); border-radius: 22px; background: color-mix(in srgb, var(--panel) 94%, black 6%); box-shadow: var(--shadow); padding: 22px; color: var(--text); font-family: var(--font-mono); }
+    .calib-box h2 { margin: 0 0 8px; font-size: 1.05rem; letter-spacing: -.02em; }
+    .calib-box p { margin: 0 0 16px; color: var(--dim); font: 700 11px/1.6 var(--font-mono); }
+    
+    .calib-box input {
+        width: 100%; min-width: 0; height: 38px; border: 1px solid var(--border);
+        border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text);
+        padding: 0 12px; outline: none; font-family: var(--font-mono); transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+    .calib-box input:focus { border-color: var(--accent); }
+
+    .calib-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .calib-actions button { flex: 1; }
+    
     .dialog { width: min(620px, 100%); border: 1px solid var(--border2); border-radius: 22px; background: color-mix(in srgb, var(--panel) 94%, black 6%); box-shadow: var(--shadow); padding: 18px; }
     .dialog h2 { margin: 0 0 8px; font-size: 1.15rem; letter-spacing: -.03em; }
     .dialog p { margin: 0 0 16px; color: var(--dim); font: 700 11px/1.5 var(--font-mono); }
@@ -258,11 +397,6 @@
     .custom-theme-modal .ct-save { background: #4a7aff !important; border: none !important; color: #ffffff !important; }
     .custom-theme-modal .ct-delete { display: none; flex: 0 0 auto !important; background: transparent !important; border: 1px solid #ff4a4a !important; color: #ff4a4a !important; }
 
-    .head-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1 1 auto; }
-    .back-lab { height: 34px; display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--panel) 70%, transparent); color: var(--dim); text-decoration: none; font: 700 10px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; transition: border-color .18s ease, color .18s ease, background .18s ease, transform .18s ease; }
-    .back-lab:hover { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel)); transform: translateY(-1px); }
-    .back-lab svg { width: 14px; height: 14px; fill: currentColor; flex: 0 0 auto; }
-
     #audio-widget { position: relative; z-index: 4; flex: 0 1 320px; min-width: 260px; max-width: 340px; display: flex; gap: 12px; align-items: center; background: color-mix(in srgb, var(--panel) 84%, transparent); border: 1px solid var(--border); padding: 7px 12px 8px 10px; border-radius: 14px; backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,.16); transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease, background .22s ease; overflow: hidden; }
     #audio-widget:hover { border-color: var(--accent); box-shadow: 0 8px 30px color-mix(in srgb, var(--accent) 18%, transparent); transform: translateY(-1px); }
     .audio-eq { display: flex; gap: 3px; align-items: flex-end; width: 18px; height: 16px; flex: 0 0 auto; }
@@ -291,7 +425,6 @@
       .shell { height: auto; min-height: 100vh; grid-template-rows: auto auto auto; }
       header { min-height: 72px; align-items: stretch; padding-top: 12px; padding-bottom: 12px; flex-direction: column; }
       .head-left { width: 100%; justify-content: flex-start; }
-      .brand { flex: 1 1 auto; }
       #audio-widget { width: 100%; max-width: none; min-width: 0; flex: 0 0 auto; }
       .head-actions { width: 100%; justify-content: flex-start; }
       .workspace { display: flex; flex-direction: column; gap: 12px; }
@@ -301,9 +434,7 @@
       .status { flex-wrap: wrap; gap: 8px 12px; }
     }
     @media (max-width: 560px) {
-      .head-left { flex-direction: column; align-items: stretch; gap: 10px; }
-      .back-lab { width: 100%; justify-content: center; }
-      .brand { justify-content: center; text-align: center; }
+      .head-left { justify-content: center; width: 100%; }
       #audio-widget { padding-right: 10px; gap: 10px; }
       .audio-controls { padding-left: 8px; margin-left: 0; }
       .audio-info { min-width: 0; }
@@ -315,21 +446,40 @@
 </head>
 <body>
   <div class="grid"></div>
+  
+  <div class="search-bar" id="searchBar">
+    <div class="search-row">
+      <div class="search-drag-handle" id="searchDrag" title="Verschieben">⋮⋮</div>
+      <input type="text" id="searchInput" placeholder="Finden (Strg+F)" autocomplete="off">
+      <span class="search-count" id="searchCount">0/0</span>
+      <button class="btn btn-icon" id="searchPrev" title="Vorheriges">↑</button>
+      <button class="btn btn-icon" id="searchNext" title="Nächstes">↓</button>
+      <button class="btn btn-icon" id="toggleAdv" title="Erweiterte Suche (Auf/Zu)" style="margin-left:auto;">▼</button>
+      <button class="btn btn-icon" id="searchClose" title="Schließen">✕</button>
+    </div>
+    <div class="search-advanced" id="searchAdvanced">
+      <label class="toggle small" title="Groß-/Kleinschreibung beachten"><input type="checkbox" id="searchMatchCase"> Aa</label>
+      <label class="toggle small" title="Ganzes Wort"><input type="checkbox" id="searchWholeWord"> " "</label>
+      <div class="search-divider"></div>
+      <input type="text" id="replaceInput" placeholder="Ersetzen mit..." autocomplete="off">
+      <button class="btn" id="replaceBtn" title="Ersetzen">Ersetzen</button>
+      <button class="btn" id="replaceAllBtn" title="Alle ersetzen">Alle</button>
+      <div class="search-divider"></div>
+      <div style="display:flex; align-items:center; gap:4px;" title="Highlight Farbe auswählen">
+         <input type="color" id="searchColorPicker" value="#ffcc66" class="color-picker-small">
+         <input type="text" id="searchColorHex" value="#ffcc66" class="color-hex-small">
+      </div>
+    </div>
+  </div>
 
   <main class="shell" id="app">
     <header>
       <div class="head-left">
-        <a class="back-lab" href="lab-platform" aria-label="Zurück zum Lab">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-          Zurück zum Lab
+        <a href="lab-platform" class="logo">
+            <span class="logo-name">MUSTNO</span>
+            <span class="logo-cursor"></span>
+            <span class="logo-app">VIEWER</span>
         </a>
-        <div class="brand">
-          <div class="mark">&lt;/&gt;</div>
-          <div>
-            <h1>HTML Viewer</h1>
-            <span class="sub">MUSTNO Tools / Beautify / Preview</span>
-          </div>
-        </div>
       </div>
 
       <div id="audio-widget" aria-label="Musik Player">
@@ -371,13 +521,14 @@
           </div>
           <div class="tools">
             <button class="btn" id="sampleBtn">Sample</button>
-            <button class="btn" id="uploadBtn">File</button>
+            <button class="btn" id="uploadBtn" title="Lokale HTML-Datei laden">Load File</button>
             <input id="fileInput" type="file" accept=".html,.htm,.txt,text/html,text/plain" hidden>
           </div>
         </div>
 
         <div class="toolbar">
           <label class="toggle"><input id="autoUpdate" type="checkbox" checked> Auto Update</label>
+          <label class="toggle" title="Färbt den Text links farblich ein."><input id="colorInputToggle" type="checkbox" checked> Colored Input</label>
           <select class="control" id="tabSize" title="Einrückung (Leerzeichen)">
             <option value="1">Indent 1</option>
             <option value="2" selected>Indent 2</option>
@@ -387,17 +538,23 @@
           </select>
           <button class="btn primary" id="beautifyBtn">Beautify HTML</button>
           <button class="btn primary" id="runBtn">Run / View</button>
-          <button class="btn" id="minifyBtn">Minify HTML</button>
+          <button class="btn" id="refreshBtn" title="Vorschau neu laden">⟳ Refresh</button>
+          <button class="btn" id="minifyBtn" title="Schnelle Komprimierung (Regex, ASI-Sicher)">Minify (Fast)</button>
+          <button class="btn primary" id="minifyAstBtn" title="Maximale Komprimierung mit echtem JS Parser (Terser AST via Web Worker)">Minify (AST)</button>
+          <button class="btn" id="undoBtn" title="Rückgängig (Strg+Z)">↶ Undo</button>
+          <button class="btn" id="redoBtn" title="Wiederholen (Strg+Y)">↷ Redo</button>
           <button class="btn danger" id="clearBtn">Clear</button>
         </div>
 
-        <div class="file-tabs-bar" id="fileTabsBar">
-          <!-- Tabs werden dynamisch generiert -->
-        </div>
+        <div class="file-tabs-bar" id="fileTabsBar"></div>
 
         <div class="editor-wrap">
           <pre class="lines" id="lineNumbers">1</pre>
-          <textarea id="editor" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="HTML hier einfügen..."></textarea>
+          <div class="input-layer-wrap colored" id="inputLayerWrap">
+             <pre id="searchHighlightOverlay" class="input-overlay search-overlay" aria-hidden="true"></pre>
+             <pre id="inputHighlightOverlay" class="input-overlay" aria-hidden="true"></pre>
+             <textarea id="editor" class="colored-mode" spellcheck="false" autocomplete="off" autocapitalize="off" wrap="off" placeholder="HTML hier einfügen..."></textarea>
+          </div>
         </div>
       </section>
 
@@ -410,27 +567,87 @@
             <span class="meta" id="outputMeta">Preview bereit</span>
           </div>
           <div class="tools">
-            <select class="control" id="deviceSelect" title="Preview Breite">
-              <option value="100%">Fit</option>
-              <option value="1440px">Desktop</option>
-              <option value="820px">Tablet</option>
-              <option value="390px">Mobile</option>
-            </select>
+            <button id="foldToggleBtn" class="btn primary" style="display:none; border-radius:8px;">◱ Aufklappen</button>
+            
+            <div class="dd" id="deviceDropdown">
+              <button class="btn dd-trigger" id="deviceDropdownBtn" type="button" aria-haspopup="true" aria-expanded="false" title="Preview Gerät wählen">
+                <span id="deviceDropdownLabel">Fit / Responsive</span>
+                <span class="dd-caret">▾</span>
+              </button>
+              <div class="dd-menu dd-menu-right" id="deviceDropdownMenu" role="menu" hidden>
+                <button class="dd-item active" data-value="fit" type="button">Fit / Responsive</button>
+                <div id="presetList"></div>
+                <button class="dd-item" data-value="1920x1080" type="button">Desktop 1080p (1920×1080)</button>
+                <button class="dd-item" data-value="1366x768" type="button">Laptop (1366×768)</button>
+                <button class="dd-item" data-value="768x1024" type="button">Tablet Portrait (768×1024)</button>
+                <button class="dd-item" data-value="1024x768" type="button">Tablet Landscape (1024×768)</button>
+                <button class="dd-item" data-value="1200x1920" type="button">16:10 Portrait (1200×1920)</button>
+                <button class="dd-item" data-value="1920x1200" type="button">16:10 Landscape (1920×1200)</button>
+                <button class="dd-item" data-value="390x844" type="button">Mobile (390×844)</button>
+                <button class="dd-item" data-value="844x390" type="button">Mobile Landscape (844×390)</button>
+                <button class="dd-item" data-value="custom" type="button">Benutzerdefiniert…</button>
+                <div class="dd-custom-panel" id="customDevicePanel">
+                  <div class="dd-custom-row">
+                    <input type="number" id="cdWidth" placeholder="Breite (px)" min="50" value="390">
+                    <span class="dd-x">×</span>
+                    <input type="number" id="cdHeight" placeholder="Höhe (px)" min="50" value="844">
+                  </div>
+                  <div class="dd-custom-row">
+                    <input type="text" inputmode="decimal" id="cdInch" placeholder="Bildschirmdiagonale in Zoll (optional)">
+                  </div>
+                  <label class="toggle small" title="Skaliert die Anzeige auf die reale physische Bildschirmgröße deines Monitors.">
+                    <input type="checkbox" id="cdPhysical"> Echtgröße (ca.)
+                  </label>
+                  
+                  <label class="toggle small" style="margin-top:4px;">
+                    <input type="checkbox" id="cdFoldable"> Foldable Device
+                  </label>
+                  <div id="foldSettings" style="display:none; flex-direction:column; gap:6px; margin-top:4px; padding-left:8px; border-left:2px solid var(--accent);">
+                    <span style="font-size:9px; color:var(--dim);">Größe, wenn aufgefaltet:</span>
+                    <div class="dd-custom-row">
+                      <input type="number" id="cdUnfoldW" placeholder="Offene Br." min="50" value="1536">
+                      <span class="dd-x">×</span>
+                      <input type="number" id="cdUnfoldH" placeholder="Offene Hö." min="50" value="2152">
+                    </div>
+                    <div class="dd-custom-row">
+                      <input type="text" inputmode="decimal" id="cdUnfoldInch" placeholder="Zoll aufgefaltet">
+                    </div>
+                  </div>
+
+                  <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid var(--border); padding-top:8px;">
+                    <input type="text" id="cdPresetName" maxlength="20" placeholder="Preset Name..." style="flex:1; height:28px; border-radius:6px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:white; padding:0 8px; font:700 10px var(--font-mono); outline:none;">
+                    <button class="btn success" id="cdSavePresetBtn" type="button" style="height:28px; padding:0 8px; font-size:10px;">Save</button>
+                  </div>
+                </div>
+                <div style="margin-top: 4px; border-top: 1px solid var(--border); padding-top: 6px;">
+                  <button class="btn" id="calibrateBtn" type="button" title="Für 100% genaue Ergebnisse deinen Monitor einmalig kalibrieren" style="width:100%; justify-content:center;">Monitor kalibrieren</button>
+                </div>
+              </div>
+            </div>
             <button class="btn" id="toggleSourceBtn">Source</button>
+            <button class="btn" id="newWindowBtn" title="Öffnet die Vorschau in einem eigenständigen Browserfenster (kein neuer Tab)">Pop-out Vorschau</button>
             <button class="btn" id="fullscreenBtn">Fullscreen</button>
-            <button class="btn success" id="downloadBtn">Download</button>
+            <div class="dd dd-split" id="downloadDropdownWrap">
+              <button class="btn success dd-split-main" id="downloadBtn" title="Herunterladen">Download</button>
+              <button class="btn success dd-split-caret" id="downloadCaretBtn" type="button" aria-haspopup="true" aria-expanded="false" title="Speicherformat wählen">▾</button>
+              <div class="dd-menu dd-menu-right" id="downloadMenu" role="menu" hidden>
+                <button class="dd-item active" data-fmt="html" type="button">Als .html speichern</button>
+                <button class="dd-item" data-fmt="txt" type="button">Als .txt speichern (reiner Text)</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="toolbar">
-          <span class="meta">Sandbox Preview</span>
-          <span class="meta">CSS / JS / HTML wird lokal im Browser gerendert</span>
-        </div>
-
         <div class="preview-wrap" id="previewWrap">
-          <iframe id="preview" title="HTML Preview" sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"></iframe>
-          <div class="output-source">
-            <textarea id="sourceOutput" readonly spellcheck="false"></textarea>
+          <div id="scaleWrap">
+            <iframe id="preview" title="HTML Preview" sandbox="allow-scripts allow-forms allow-popups allow-modals allow-same-origin"></iframe>
+          </div>
+          
+          <div class="output-source" id="outputSource">
+            <div class="source-flex-container">
+               <pre class="src-lines" id="srcLineNumbers">1</pre>
+               <pre class="src-code" id="sourceCodeInner"></pre>
+            </div>
           </div>
         </div>
       </section>
@@ -467,23 +684,44 @@
 
   <div class="toast" id="toast"></div>
 
-  <div class="url-pop" id="urlPop" role="dialog" aria-modal="true" aria-labelledby="urlTitle">
-    <div class="dialog">
-      <h2 id="urlTitle">HTML von URL laden</h2>
-      <p>Direktes Laden funktioniert nur, wenn die Website CORS erlaubt. Sonst Datei herunterladen und über “File” laden.</p>
-      <div class="dialog-row">
-        <input id="urlInput" type="url" placeholder="https://example.com/index.html">
-        <button class="btn primary" id="loadUrlBtn">Load</button>
+  <div class="calib-modal" id="calibModal" role="dialog" aria-modal="true" aria-labelledby="calibTitle">
+    <div class="calib-box">
+      <h2 id="calibTitle">Monitor kalibrieren</h2>
+      <p>Gib die physischen Spezifikationen deines aktuellen Monitors ein, um eine <strong>100% akkurate</strong> Darstellung der Echtgröße zu berechnen.</p>
+      
+      <div id="monPresetList" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;"></div>
+
+      <label class="label" style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--dim);">Bildschirmauflösung</label>
+      <div class="dialog-row" style="margin-bottom: 16px;">
+        <input type="number" id="monResW" placeholder="Breite (px)">
+        <span class="dd-x" style="display:flex;align-items:center;">×</span>
+        <input type="number" id="monResH" placeholder="Höhe (px)">
+      </div>
+      
+      <label class="label" style="display:block; margin-bottom: 6px; font-size: 10px; color: var(--dim);">Bildschirmdiagonale</label>
+      <div class="dialog-row" style="margin-bottom: 16px;">
+        <input type="text" inputmode="decimal" id="monDiag" placeholder="Zoll (z.B. 27,5)">
+        <span class="dd-x" style="display:flex;align-items:center;">Zoll</span>
+      </div>
+      
+      <div style="display:flex; gap:6px; margin-top:14px; border-top:1px solid var(--border); padding-top:12px;">
+         <input type="text" id="monPresetName" placeholder="Profilname (z.B. Laptop)" maxlength="20" style="flex:1;">
+         <button class="btn success" id="saveMonPresetBtn" type="button">Speichern</button>
+      </div>
+
+      <div class="calib-actions" style="margin-top: 14px;">
+        <button class="btn" id="calibCancelBtn" type="button">Schließen</button>
       </div>
     </div>
   </div>
 
   <script>
     (() => {
+      const maxCustomThemes = 10;
+      const CALIBRATION_KEY = 'mustno-mon-ppi'; // Speichert jetzt die PHYSIKALISCHE PPI
       const $ = (sel) => document.querySelector(sel);
       const editor = $('#editor');
       const preview = $('#preview');
-      const sourceOutput = $('#sourceOutput');
       const previewWrap = $('#previewWrap');
       const lineNumbers = $('#lineNumbers');
       const inputMeta = $('#inputMeta');
@@ -492,30 +730,26 @@
       const splitKey = 'mustno-html-viewer-split';
       const themeKey = 'mustno-theme';
       const customThemeKey = 'mustno-custom-themes';
-      const maxCustomThemes = 10;
-      
+
       let customThemes = readCustomThemes();
-      let currentEditId = null;
+      let lastAutoRenderContent = '';
+      let downloadFormat = 'html';
+      let currentDeviceVal = 'fit';
+      let isUnfolded = false;
 
-      const sampleHTML = `<!DOCTYPE html>\n<html lang="de">\n<head>\n  <meta charset="UTF-8">\n  <title>MUSTNO Sample</title>\n  <style>\n    body {\n      margin: 0;\n      min-height: 100vh;\n      display: grid;\n      place-items: center;\n      font-family: system-ui, sans-serif;\n      color: #e4edff;\n      background: radial-gradient(circle at 20% 20%, #4a7aff55, transparent 40%),\n                  linear-gradient(135deg, #050b16, #0b1833);\n    }\n    .card {\n      width: min(560px, 90vw);\n      padding: 34px;\n      border: 1px solid rgba(94,255,168,.3);\n      border-radius: 24px;\n      background: rgba(5,11,22,.72);\n      box-shadow: 0 24px 90px rgba(0,0,0,.45);\n      backdrop-filter: blur(18px);\n    }\n    h1 { margin: 0; font-size: clamp(2rem, 8vw, 5rem); line-height: .86; }\n    p { color: rgba(228,237,255,.72); line-height: 1.7; }\n    button {\n      border: 1px solid #5effa8;\n      color: #5effa8;\n      background: transparent;\n      border-radius: 999px;\n      padding: 12px 18px;\n      font-weight: 800;\n    }\n  </style>\n</head>\n<body>\n  <section class="card">\n    <h1>HTML Preview</h1>\n    <p>Bearbeite links den Code und sieh rechts sofort die Vorschau.</p>\n    <button onclick="alert('Preview läuft!')">Test Button</button>\n  </section>\n</body>\n</html>`;
+      const sampleHTML = `<!DOCTYPE html>\n<html lang="de">\n<head>\n  <meta charset="UTF-8">\n  <title>MUSTNO Sample</title>\n  <style>\n    body {\n      margin: 0;\n      min-height: 100vh;\n      display: grid;\n      place-items: center;\n      font-family: system-ui, sans-serif;\n      color: #e4edff;\n      background: radial-gradient(circle at 20% 20%, #4a7aff55, transparent 40%),\n                  linear-gradient(135deg, #050b16, #0b1833);\n    }\n    .card {\n      width: min(560px, 90vw);\n      padding: 34px;\n      border: 1px solid rgba(94,255,168,.3);\n      border-radius: 24px;\n      background: rgba(5,11,22,.72);\n      box-shadow: 0 24px 90px rgba(0,0,0,.45);\n      backdrop-filter: blur(18px);\n    }\n    h1 { margin: 0; font-size: clamp(2rem, 8vw, 5rem); line-height: .86; }\n    p { color: rgba(228,237,255,.72); line-height: 1.7; }\n    button {\n      border: 1px solid #5effa8;\n      color: #5effa8;\n      background: transparent;\n      border-radius: 999px;\n      padding: 12px 18px;\n      font-weight: 800;\n    }\n  </style>\n</head>\n<body>\n  <section class="card">\n    <h1>HTML Preview</h1>\n    <p>Bearbeite links den Code und sieh rechts sofort die Vorschau.</p>\n    <button onclick="alert('Preview läuft!')">Test Button</button>\n  </section>\n  <script>\n    const btn = document.querySelector('button');\n    const state = true;\n    let count = 0;\n    btn.addEventListener('click', () => {\n      console.log("Klick-Event ausgelöst!");\n    });\n  <` + `/script>\n</body>\n</html>`;
 
-      // MULTI-DOCUMENT TABS SETUP - BULLETPROOF LOAD
       const multiStorageKey = 'mustno-multi-docs';
       let docs = [];
-      
+
       try {
         const rawStorage = localStorage.getItem(multiStorageKey);
         if (rawStorage) {
           const parsed = JSON.parse(rawStorage);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            docs = parsed;
-          }
+          if (Array.isArray(parsed) && parsed.length > 0) docs = parsed;
         }
-      } catch (error) {
-        console.warn("Storage korrupt, wird zurückgesetzt.", error);
-      }
+      } catch (error) { console.warn("Storage korrupt, wird zurückgesetzt."); }
 
-      // Wenn docs leer ist (erster Besuch oder nach Crash)
       if (docs.length === 0) {
         docs = [{
           id: 'doc-' + Date.now(),
@@ -525,12 +759,114 @@
       }
 
       let activeDocId = localStorage.getItem('mustno-active-doc') || docs[0].id;
-      
-      // Sicherheits-Check, falls activeDocId auf ein gelöschtes Doc zeigt
+
       if (!docs.find(d => d.id === activeDocId)) {
         activeDocId = docs[0].id;
         localStorage.setItem('mustno-active-doc', activeDocId);
       }
+
+      let undoStack = [];
+      let redoStack = [];
+      const MAX_HISTORY = 100;
+      let lastSnapshot = '';
+      let snapshotTimer = null;
+
+      function pushHistory(v) {
+        undoStack.push(v);
+        if (undoStack.length > MAX_HISTORY) undoStack.shift();
+        redoStack = [];
+      }
+
+      function commitPendingSnapshot() {
+        clearTimeout(snapshotTimer);
+        if (editor.value !== lastSnapshot) {
+          pushHistory(lastSnapshot);
+          lastSnapshot = editor.value;
+        }
+      }
+
+      function scheduleSnapshot() {
+        clearTimeout(snapshotTimer);
+        snapshotTimer = setTimeout(() => {
+          if (editor.value !== lastSnapshot) {
+            pushHistory(lastSnapshot);
+            lastSnapshot = editor.value;
+          }
+        }, 500);
+      }
+
+      function undo() {
+        commitPendingSnapshot();
+        if (!undoStack.length) { showToast('Nichts zum Rückgängigmachen'); return; }
+        const prev = undoStack.pop();
+        redoStack.push(editor.value);
+        lastSnapshot = prev;
+        applyEditorValue(prev);
+        showToast('Rückgängig gemacht');
+      }
+
+      function redo() {
+        if (!redoStack.length) { showToast('Nichts zum Wiederholen'); return; }
+        const next = redoStack.pop();
+        undoStack.push(editor.value);
+        lastSnapshot = next;
+        applyEditorValue(next);
+        showToast('Wiederholt');
+      }
+
+      function applyEditorValue(value) {
+        editor.value = value;
+        updateAll();
+        const activeDoc = docs.find(d => d.id === activeDocId);
+        if (activeDoc) { activeDoc.content = value; saveDocs(); }
+        if ($('#autoUpdate').checked) debounceRun();
+        if ($('#searchBar').classList.contains('show')) window._triggerLiveSearch();
+      }
+
+      window._triggerLiveSearch = () => {}; 
+      
+      // Globale Exporte für die Kommunikation mit dem Pop-out Fenster
+      window._renderPresetsGlobal = () => { renderPresets(); };
+      window._syncMonitorsGlobal = () => { 
+          renderMonitors(); 
+          if ($('#cdPhysical').checked) applyCustomDevice(true); 
+      };
+
+      // --- TERSER WEB WORKER LOGIC ---
+      let _terserWorker = null;
+      function getTerserWorker() {
+          if (_terserWorker) return _terserWorker;
+          const code = `
+              try {
+                  importScripts('https://unpkg.com/terser/dist/bundle.min.js');
+              } catch(e) {
+                  self.postMessage({ type: 'error', error: 'CDN blockiert oder offline. AST benötigt Internet.' });
+              }
+              self.onmessage = async function(e) {
+                  if (!self.Terser) {
+                      self.postMessage({ id: e.data.id, error: 'Terser Engine nicht geladen.' });
+                      return;
+                  }
+                  try {
+                      const result = await self.Terser.minify(e.data.code, {
+                          mangle: true,
+                          compress: { passes: 2, dead_code: true }
+                      });
+                      if (result.error) {
+                           self.postMessage({ id: e.data.id, error: result.error.message || 'Syntax Error im JavaScript' });
+                      } else {
+                           self.postMessage({ id: e.data.id, result: result.code });
+                      }
+                  } catch (err) {
+                      self.postMessage({ id: e.data.id, error: err.message });
+                  }
+              };
+          `;
+          const blob = new Blob([code], { type: 'application/javascript' });
+          _terserWorker = new Worker(URL.createObjectURL(blob));
+          return _terserWorker;
+      }
+      // -------------------------------
 
       init();
 
@@ -538,31 +874,90 @@
         updateThemeDropdowns();
         applyInitialTheme();
         restoreSplit();
-        
+
         const activeDoc = docs.find(d => d.id === activeDocId);
         if (editor && activeDoc) editor.value = activeDoc.content;
-        
+        lastSnapshot = editor.value;
+
         renderTabs();
         updateAll();
         bindEvents();
+        applyDeviceValue('fit');
         runPreview();
+        initSearchAndReplace();
+        
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'mustno-presets') renderPresets();
+            if (e.key === 'mustno-monitors') renderMonitors();
+            if (e.key === CALIBRATION_KEY) {
+                renderMonitors();
+                if ($('#cdPhysical').checked) applyCustomDevice(true);
+            }
+            if (e.key === multiStorageKey) {
+                docs = JSON.parse(localStorage.getItem(multiStorageKey) || '[]');
+                renderTabs();
+            }
+        });
+        renderPresets();
+        renderMonitors();
+        
         showToast('HTML Viewer bereit');
       }
+
+      let dragSourceId = null;
 
       function renderTabs() {
         const bar = $('#fileTabsBar');
         if (!bar) return;
-        bar.innerHTML = '';
         
+        // Speichert die aktuelle Scroll-Position der Leiste
+        const currentScroll = bar.scrollLeft;
+        
+        Array.from(bar.children).forEach(child => {
+          if (child.classList.contains('file-tab') || child.classList.contains('add-tab-btn')) child.remove();
+        });
+
         docs.forEach(doc => {
           const tab = document.createElement('button');
           tab.className = `file-tab ${doc.id === activeDocId ? 'active' : ''}`;
-          
+          tab.draggable = true;
+          tab.dataset.docId = doc.id;
+
+          const nameWrap = document.createElement('div');
+          nameWrap.className = 'tab-name-wrap';
+
           const nameSpan = document.createElement('span');
+          nameSpan.className = 'tab-name-text';
           nameSpan.textContent = doc.name;
-          nameSpan.onclick = () => switchTab(doc.id);
-          tab.appendChild(nameSpan);
-          
+          nameSpan.title = doc.name; 
+
+          const renameTabFn = (e) => {
+            e.stopPropagation();
+            startTabRename(tab, nameSpan, doc);
+          };
+
+          nameSpan.onclick = (e) => {
+            e.stopPropagation();
+            const now = Date.now();
+            if (doc._lastClick && now - doc._lastClick < 450) {
+              doc._lastClick = 0;
+              renameTabFn(e);
+              return;
+            }
+            doc._lastClick = now;
+            if (doc.id !== activeDocId) switchTab(doc.id);
+          };
+
+          const editBtn = document.createElement('span');
+          editBtn.className = 'file-tab-edit';
+          editBtn.innerHTML = '✎';
+          editBtn.title = "Umbenennen";
+          editBtn.onclick = renameTabFn;
+
+          nameWrap.appendChild(nameSpan);
+          nameWrap.appendChild(editBtn);
+          tab.appendChild(nameWrap);
+
           if (docs.length > 1) {
             const closeBtn = document.createElement('span');
             closeBtn.className = 'file-tab-close';
@@ -574,15 +969,91 @@
             };
             tab.appendChild(closeBtn);
           }
+
+          tab.addEventListener('dragstart', (e) => {
+            dragSourceId = doc.id;
+            tab.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            try { e.dataTransfer.setData('text/plain', doc.id); } catch (err) {}
+          });
+          tab.addEventListener('dragend', () => {
+            tab.classList.remove('dragging');
+            dragSourceId = null;
+            bar.querySelectorAll('.file-tab').forEach(t => t.classList.remove('drag-over'));
+          });
+          tab.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (dragSourceId && dragSourceId !== doc.id) tab.classList.add('drag-over');
+          });
+          tab.addEventListener('dragleave', () => tab.classList.remove('drag-over'));
+          tab.addEventListener('drop', (e) => {
+            e.preventDefault();
+            tab.classList.remove('drag-over');
+            const draggedId = dragSourceId || e.dataTransfer.getData('text/plain');
+            if (!draggedId || draggedId === doc.id) return;
+            reorderTabs(draggedId, doc.id);
+          });
+
           bar.appendChild(tab);
         });
 
         const addBtn = document.createElement('button');
         addBtn.className = 'add-tab-btn';
+        addBtn.id = 'inlineAddBtn';
         addBtn.innerHTML = '+';
         addBtn.title = "Neue Datei";
         addBtn.onclick = addNewTab;
         bar.appendChild(addBtn);
+
+        // Stellt die vorherige Scroll-Position sofort wieder her
+        bar.scrollLeft = currentScroll;
+
+        setTimeout(() => {
+          const activeTab = bar.querySelector('.file-tab.active');
+          if (activeTab) {
+            // Animiert sanft von der wiederhergestellten Position zum Tab
+            activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+          }
+        }, 10);
+      }
+
+      function reorderTabs(draggedId, targetId) {
+        const fromIdx = docs.findIndex(d => d.id === draggedId);
+        const toIdx = docs.findIndex(d => d.id === targetId);
+        if (fromIdx === -1 || toIdx === -1) return;
+        const [moved] = docs.splice(fromIdx, 1);
+        docs.splice(toIdx, 0, moved);
+        saveDocs();
+        renderTabs();
+      }
+
+      function startTabRename(tab, nameSpan, doc) {
+        const wrap = nameSpan.parentElement;
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = doc.name;
+        input.className = 'tab-rename-input';
+        input.maxLength = 25; 
+        tab.replaceChild(input, wrap);
+        input.focus();
+        input.select();
+
+        let done = false;
+        const commit = () => {
+          if (done) return;
+          done = true;
+          const val = input.value.trim();
+          doc.name = val || doc.name;
+          saveDocs();
+          renderTabs();
+        };
+        input.addEventListener('blur', commit);
+        input.addEventListener('click', (e) => e.stopPropagation());
+        input.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter') { ev.preventDefault(); input.blur(); }
+          if (ev.key === 'Escape') { ev.preventDefault(); done = true; renderTabs(); }
+        });
       }
 
       function switchTab(id) {
@@ -591,8 +1062,13 @@
         const activeDoc = docs.find(d => d.id === activeDocId);
         if (activeDoc) {
           editor.value = activeDoc.content;
+          lastSnapshot = editor.value;
+          undoStack = [];
+          redoStack = [];
           updateAll();
           runPreview();
+          if ($('#searchBar').classList.contains('show')) window._triggerLiveSearch();
+          localStorage.setItem('mustno-live-code', editor.value);
         }
         renderTabs();
       }
@@ -620,27 +1096,471 @@
         localStorage.setItem(multiStorageKey, JSON.stringify(docs));
       }
 
+      function initSearchAndReplace() {
+        let searchMatches = [];
+        let searchCurrent = -1;
+
+        const sBar = $('#searchBar');
+        const sOverlay = $('#searchHighlightOverlay');
+        const sInput = $('#searchInput');
+        const rInput = $('#replaceInput');
+        const sCount = $('#searchCount');
+        const dragHandle = $('#searchDrag');
+        const sColorPicker = $('#searchColorPicker');
+        const sColorHex = $('#searchColorHex');
+        const sMatchCase = $('#searchMatchCase');
+        const sWholeWord = $('#searchWholeWord');
+
+        // Global Event Listener für Escape und Strg+F Handling
+        document.addEventListener('keydown', e => {
+          // ESC Logik (schließt die Suche, falls sie offen ist)
+          if (e.key === 'Escape') {
+              if (sBar && sBar.classList.contains('show')) {
+                  $('#searchClose').click();
+                  e.preventDefault();
+                  return; 
+              }
+              // Sonstige Escape Funktionalität (z.B. Popups schließen) bleibt bestehen
+              const calibModal = $('#calibModal');
+              if (calibModal && calibModal.classList.contains('show')) calibModal.classList.remove('show');
+              const themeModal = $('#customThemeModal');
+              if (themeModal && themeModal.classList.contains('show')) closeCustomThemeModal();
+          }
+
+          // STRG+F Abfangen
+          if ((e.ctrlKey || e.metaKey) && (e.key === 'f' || e.key === 'F')) {
+            const wrap = $('#previewWrap');
+            if (wrap && wrap.classList.contains('show-source')) return; 
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            if(!sBar.classList.contains('show')) {
+                sBar.style.left = '50%';
+                sBar.style.top = '16px';
+                sBar.style.transform = 'translateX(-50%)';
+                sBar.classList.add('show');
+            }
+            
+            const sel = editor.value.substring(editor.selectionStart, editor.selectionEnd);
+            if (sel) sInput.value = sel;
+            sInput.focus();
+            sInput.select();
+            doSearch(true, false);
+          }
+        });
+
+        $('#toggleAdv').addEventListener('click', () => {
+            const adv = $('#searchAdvanced');
+            adv.classList.toggle('show');
+            $('#toggleAdv').textContent = adv.classList.contains('show') ? '▲' : '▼';
+        });
+
+        function updateSearchColor(val) {
+            sColorPicker.value = cssToHex(val);
+            sColorHex.value = val;
+            document.documentElement.style.setProperty('--search-bg', val);
+        }
+        
+        sColorPicker.addEventListener('input', e => updateSearchColor(e.target.value));
+        sColorHex.addEventListener('input', e => updateSearchColor(e.target.value));
+        updateSearchColor('rgba(255, 204, 102, 0.4)'); 
+
+        let isDragging = false, startX, startY, initLeft, initTop;
+        
+        dragHandle.addEventListener('pointerdown', e => {
+          isDragging = true;
+          startX = e.clientX; startY = e.clientY;
+          
+          if (sBar.style.transform !== 'none') {
+             const rect = sBar.getBoundingClientRect();
+             const parentRect = sBar.parentElement.getBoundingClientRect();
+             sBar.style.transform = 'none';
+             sBar.style.left = (rect.left - parentRect.left) + 'px';
+             sBar.style.top = (rect.top - parentRect.top) + 'px';
+          }
+          
+          initLeft = parseFloat(sBar.style.left) || 0;
+          initTop = parseFloat(sBar.style.top) || 0;
+          
+          dragHandle.setPointerCapture(e.pointerId);
+          e.preventDefault();
+        });
+        
+        dragHandle.addEventListener('pointermove', e => {
+          if (!isDragging) return;
+          sBar.style.left = (initLeft + e.clientX - startX) + 'px';
+          sBar.style.top = (initTop + e.clientY - startY) + 'px';
+        });
+        
+        const stopDrag = () => { if(isDragging) isDragging = false; };
+        dragHandle.addEventListener('pointerup', stopDrag);
+        dragHandle.addEventListener('pointercancel', stopDrag);
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function escapeHTMLOverlay(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderHighlights() {
+            if (!sBar.classList.contains('show')) { sOverlay.innerHTML = ''; return; }
+            let text = editor.value;
+            let out = '';
+            let last = 0;
+            
+            searchMatches.forEach((m, i) => {
+                let chunk = escapeHTMLOverlay(text.substring(last, m.start));
+                let matchText = escapeHTMLOverlay(text.substring(m.start, m.end));
+                out += chunk;
+                out += `<mark class="${i === searchCurrent ? 'current' : ''}">${matchText}</mark>`;
+                last = m.end;
+            });
+            out += escapeHTMLOverlay(text.substring(last));
+            if (text.endsWith('\n')) out += ' '; 
+            sOverlay.innerHTML = out;
+        }
+
+        function doSearch(keepFocus = false, skipFocusMatch = false) {
+          const q = sInput.value;
+          searchMatches = [];
+          
+          if (!skipFocusMatch) {
+              searchCurrent = -1;
+          }
+          sCount.textContent = '0/0';
+          
+          if (!q) {
+              renderHighlights();
+              return;
+          }
+
+          const text = editor.value;
+          const flags = sMatchCase.checked ? 'g' : 'gi';
+          let pattern = escapeRegExp(q);
+          if (sWholeWord.checked) pattern = `\\b${pattern}\\b`;
+
+          let regex;
+          try { regex = new RegExp(pattern, flags); } catch(e) { return; }
+
+          let match;
+          while ((match = regex.exec(text)) !== null) {
+            searchMatches.push({ start: match.index, end: match.index + match[0].length });
+            if (regex.lastIndex === match.index) regex.lastIndex++; 
+          }
+
+          if (searchMatches.length > 0) {
+            if (skipFocusMatch) {
+                if (searchCurrent >= searchMatches.length) searchCurrent = searchMatches.length - 1;
+                if (searchCurrent < 0) searchCurrent = 0;
+                sCount.textContent = `${searchCurrent + 1}/${searchMatches.length}`;
+                renderHighlights();
+            } else {
+                searchCurrent = 0;
+                focusMatch(keepFocus);
+            }
+          } else {
+            searchCurrent = -1;
+            renderHighlights();
+          }
+        }
+        
+        window._triggerLiveSearch = () => { if(sBar.classList.contains('show')) doSearch(true, true); };
+
+        function focusMatch(keepFocus = false) {
+          if (searchCurrent < 0 || searchCurrent >= searchMatches.length) {
+              renderHighlights(); return;
+          }
+          sCount.textContent = `${searchCurrent + 1}/${searchMatches.length}`;
+          const m = searchMatches[searchCurrent];
+          
+          const currentFocus = document.activeElement;
+          if(!keepFocus) editor.focus();
+          
+          editor.setSelectionRange(m.start, m.end);
+          
+          const textToMatch = editor.value.substring(0, m.start);
+          const lines = textToMatch.split('\n').length;
+          
+          // CSS line-height ist exact 21px
+          const exactLineHeight = 21; 
+          editor.scrollTop = Math.max(0, (lines - 1) * exactLineHeight - (editor.clientHeight / 2));
+          
+          if(sOverlay) { sOverlay.scrollTop = editor.scrollTop; sOverlay.scrollLeft = editor.scrollLeft; }
+          const iOverlay = $('#inputHighlightOverlay');
+          if(iOverlay) { iOverlay.scrollTop = editor.scrollTop; iOverlay.scrollLeft = editor.scrollLeft; }
+          
+          renderHighlights();
+
+          if(keepFocus && currentFocus && typeof currentFocus.focus === 'function') {
+              currentFocus.focus();
+          }
+        }
+
+        sInput.addEventListener('input', () => doSearch(true, false));
+        sMatchCase.addEventListener('change', () => doSearch(true, false));
+        sWholeWord.addEventListener('change', () => doSearch(true, false));
+        
+        sInput.addEventListener('keydown', e => { 
+          if (e.key === 'Enter') { e.preventDefault(); $('#searchNext').click(); }
+        });
+        rInput.addEventListener('keydown', e => { 
+          if (e.key === 'Enter') { e.preventDefault(); $('#replaceBtn').click(); }
+        });
+
+        $('#searchNext').addEventListener('click', () => {
+          if (searchMatches.length === 0) return;
+          searchCurrent = (searchCurrent + 1) % searchMatches.length;
+          focusMatch(true); 
+        });
+
+        $('#searchPrev').addEventListener('click', () => {
+          if (searchMatches.length === 0) return;
+          searchCurrent = (searchCurrent - 1 + searchMatches.length) % searchMatches.length;
+          focusMatch(true);
+        });
+
+        $('#replaceBtn').addEventListener('click', () => {
+          if (searchMatches.length === 0 || searchCurrent < 0) return;
+          const m = searchMatches[searchCurrent];
+          const repl = rInput.value;
+          const val = editor.value;
+          
+          commitPendingSnapshot();
+          editor.value = val.substring(0, m.start) + repl + val.substring(m.end);
+          
+          editor.setSelectionRange(m.start, m.start + repl.length);
+          applyEditorValue(editor.value);
+          doSearch(true, false); 
+        });
+
+        $('#replaceAllBtn').addEventListener('click', () => {
+          if (searchMatches.length === 0) return;
+          const repl = rInput.value;
+          const q = sInput.value;
+          commitPendingSnapshot();
+          
+          const val = editor.value;
+          const flags = sMatchCase.checked ? 'g' : 'gi';
+          let pattern = escapeRegExp(q);
+          if (sWholeWord.checked) pattern = `\\b${pattern}\\b`;
+          
+          let regex;
+          try { regex = new RegExp(pattern, flags); } catch(e) { return; }
+          
+          editor.value = val.replace(regex, repl);
+          applyEditorValue(editor.value);
+          doSearch(true, false);
+          showToast('Alle Treffer ersetzt');
+        });
+
+        $('#searchClose').addEventListener('click', () => {
+          sBar.classList.remove('show');
+          renderHighlights(); 
+          editor.focus();
+        });
+      }
+
+      function minifyHTMLCSSOnly(code) {
+          let res = code.replace(/<!--[\s\S]*?-->/g, '');
+          res = res.replace(/(<(pre|textarea)[^>]*>)([\s\S]*?)(<\/\2>)/gi, (m, op, tag, content, cl) => {
+              return op + content.replace(/\r?\n/g, '&#10;') + cl;
+          });
+          res = res.replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/gi, (m, op, content, cl) => {
+              let c = content.replace(/\/\*[\s\S]*?\*\//g, '');
+              c = c.replace(/[\r\n]+/g, ' ');
+              c = c.replace(/\s{2,}/g, ' ');
+              return op + c + cl;
+          });
+          
+          let parts = res.split(/(<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>|<pre[\s\S]*?<\/pre>|<textarea[\s\S]*?<\/textarea>)/i);
+          for(let i=0; i<parts.length; i++) {
+              if(i%2 === 0) { // pure html
+                  parts[i] = parts[i].replace(/>\s+</g, '><');
+                  parts[i] = parts[i].replace(/[\r\n]+/g, ' ');
+                  parts[i] = parts[i].replace(/\s{2,}/g, ' ');
+              }
+          }
+          return parts.join('').trim();
+      }
+
+      const replaceAsync = async (str, regex, asyncFn) => {
+          const promises = [];
+          str.replace(regex, (match, ...args) => {
+              promises.push(asyncFn(match, ...args));
+          });
+          const data = await Promise.all(promises);
+          return str.replace(regex, () => data.shift());
+      };
+
       function bindEvents() {
+        const topNewBtn = $('#newBtn');
+        if(topNewBtn) topNewBtn.addEventListener('click', addNewTab);
+
         $('#themeSelect').addEventListener('change', (e) => changeTheme(e.target.value));
         $('#sampleBtn').addEventListener('click', () => setEditor(sampleHTML, 'Sample geladen'));
         $('#uploadBtn').addEventListener('click', () => $('#fileInput').click());
         $('#fileInput').addEventListener('change', handleFile);
+
+        $('#colorInputToggle').addEventListener('change', (e) => {
+            if(e.target.checked) {
+                editor.classList.add('colored-mode');
+            } else {
+                editor.classList.remove('colored-mode');
+            }
+            updateAll();
+            editor.focus();
+        });
+
         $('#beautifyBtn').addEventListener('click', () => setEditor(beautifyHTML(editor.value, Number($('#tabSize').value)), 'HTML formatiert'));
-        $('#minifyBtn').addEventListener('click', () => setEditor(minifyHTML(editor.value), 'HTML minifiziert'));
+        
+        $('#minifyBtn').addEventListener('click', () => {
+           let code = editor.value || '';
+           
+           code = code.replace(/(<script[^>]*>)([\s\S]*?)(<\/script>)/gi, (m, op, content, cl) => {
+               if (op.toLowerCase().includes('src=')) return m;
+               let c = content;
+               c = c.replace(/\/\*[\s\S]*?\*\//g, ''); // Block-Kommentare
+               c = c.replace(/([^:]|^)\/\/[^\r\n]*/g, '$1'); // Line-Kommentare sicher löschen
+               c = c.replace(/\n\s+/g, '\n'); // Einrückungen löschen, Umbrüche behalten (ASI-Schutz)
+               c = c.replace(/[\r\n]+/g, '\n'); // Leere Zeilen zusammenfassen
+               return op + '\n' + c.trim() + '\n' + cl;
+           });
+           
+           code = minifyHTMLCSSOnly(code);
+           setEditor(code, 'HTML minifiziert (Schnell, ASI-Sicher)');
+        });
+
+        $('#minifyAstBtn').addEventListener('click', async () => {
+            const btn = $('#minifyAstBtn');
+            const origText = btn.textContent;
+            btn.textContent = 'AST läuft...';
+            btn.style.opacity = '0.6';
+            btn.style.pointerEvents = 'none';
+            
+            try {
+                const worker = getTerserWorker();
+                let code = editor.value || '';
+                
+                showToast('Terser Engine initialisiert, Code wird analysiert...');
+                
+                let resCode = await replaceAsync(code, /(<script[^>]*>)([\s\S]*?)(<\/script>)/gi, async (match, op, content, cl) => {
+                    if (!content.trim() || op.toLowerCase().includes('src=')) return match;
+                    
+                    const minifiedJS = await new Promise((resolve, reject) => {
+                        const id = Math.random().toString(36);
+                        const handler = (e) => {
+                            if (e.data.id === id) {
+                                worker.removeEventListener('message', handler);
+                                if (e.data.error) reject(new Error(e.data.error));
+                                else resolve(e.data.result);
+                            }
+                        };
+                        worker.addEventListener('message', handler);
+                        worker.postMessage({ id, code: content });
+                    });
+                    
+                    return op + '\n' + minifiedJS.trim() + '\n' + cl;
+                });
+                
+                resCode = minifyHTMLCSSOnly(resCode);
+                setEditor(resCode, 'Echte AST-Minification (Terser) erfolgreich!');
+                
+            } catch (err) {
+                showToast('AST Parser Fehler: ' + err.message);
+                console.error("Terser Error:", err);
+            } finally {
+                btn.textContent = origText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'all';
+            }
+        });
+
         $('#runBtn').addEventListener('click', runPreview);
+        $('#refreshBtn').addEventListener('click', () => { runPreview(); showToast('Vorschau neu geladen'); });
         $('#downloadBtn').addEventListener('click', downloadHTML);
         $('#copyBtn').addEventListener('click', copyHTML);
-        $('#newBtn').addEventListener('click', addNewTab); 
+        
         $('#clearBtn').addEventListener('click', () => setEditor('', 'Editor geleert'));
+        $('#undoBtn').addEventListener('click', undo);
+        $('#redoBtn').addEventListener('click', redo);
         $('#toggleSourceBtn').addEventListener('click', toggleSource);
         $('#fullscreenBtn').addEventListener('click', fullscreenPreview);
-        $('#deviceSelect').addEventListener('change', (e) => previewWrap.style.setProperty('--device-width', e.target.value));
+        $('#newWindowBtn').addEventListener('click', openPreviewWindow);
+        initDeviceDropdown();
+        initDownloadDropdown();
+        initCalibration();
+        
+        $('#cdFoldable').addEventListener('change', (e) => {
+           $('#foldSettings').style.display = e.target.checked ? 'flex' : 'none';
+           applyCustomDevice(true);
+        });
+
+        $('#foldToggleBtn').addEventListener('click', () => {
+           isUnfolded = !isUnfolded;
+           $('#foldToggleBtn').innerHTML = isUnfolded ? '◰ Zufalten' : '◱ Aufklappen';
+           applyCustomDevice(true);
+        });
+
+        $('#cdSavePresetBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            const name = $('#cdPresetName').value.trim() || 'Custom Preset';
+            let presets = JSON.parse(localStorage.getItem('mustno-presets') || '[]');
+            
+            const presetObj = {
+                id: 'preset-' + Date.now(),
+                name: name,
+                w: $('#cdWidth').value,
+                h: $('#cdHeight').value,
+                inch: $('#cdInch').value, 
+                physical: $('#cdPhysical').checked,
+                foldable: $('#cdFoldable').checked,
+                uw: $('#cdUnfoldW').value,
+                uh: $('#cdUnfoldH').value,
+                uInch: $('#cdUnfoldInch').value
+            };
+
+            const existingIdx = presets.findIndex(p => p.name === name);
+            if (existingIdx >= 0) {
+                presetObj.id = presets[existingIdx].id; 
+                presets[existingIdx] = presetObj; 
+            } else {
+                presets.push(presetObj);
+            }
+
+            localStorage.setItem('mustno-presets', JSON.stringify(presets));
+            $('#cdPresetName').value = name;
+            $('#deviceDropdownLabel').textContent = name;
+            renderPresets();
+            showToast('Preset gespeichert!');
+        });
+
         $('#ctCancelBtn').addEventListener('click', closeCustomThemeModal);
         $('#ctSaveBtn').addEventListener('click', saveCustomTheme);
         $('#ctDeleteBtn').addEventListener('click', deleteCustomTheme);
         $('#customThemeModal').addEventListener('click', (e) => { if (e.target.id === 'customThemeModal') closeCustomThemeModal(); });
         $('#tabSize').addEventListener('change', (e) => document.documentElement.style.setProperty('--tab-size', e.target.value));
-        
+
+        $('#autoUpdate').addEventListener('change', (e) => {
+          if (e.target.checked) runPreview();
+        });
+
+        // ResizeObserver forces the overlays to perfectly mirror the textarea's width and height.
+        // It accounts for scrollbars automatically, fixing any visual drift at long line ends!
+        const overlayResizeObs = new ResizeObserver(() => {
+            const cw = editor.clientWidth + 'px';
+            const ch = editor.clientHeight + 'px';
+            
+            const sOverlay = $('#searchHighlightOverlay');
+            const iOverlay = $('#inputHighlightOverlay');
+
+            if (sOverlay) { sOverlay.style.width = cw; sOverlay.style.height = ch; }
+            if (iOverlay) { iOverlay.style.width = cw; iOverlay.style.height = ch; }
+        });
+        overlayResizeObs.observe(editor);
+
         editor.addEventListener('input', () => {
           updateAll();
           const activeDoc = docs.find(d => d.id === activeDocId);
@@ -649,24 +1569,192 @@
             saveDocs();
           }
           if ($('#autoUpdate').checked) debounceRun();
+          scheduleSnapshot();
+          
+          if ($('#searchBar').classList.contains('show') && typeof window._triggerLiveSearch === 'function') {
+              window._triggerLiveSearch();
+          }
+        });
+
+        editor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = editor.scrollTop;
+            
+            const sOverlay = $('#searchHighlightOverlay');
+            if(sOverlay) {
+                sOverlay.scrollTop = editor.scrollTop;
+                sOverlay.scrollLeft = editor.scrollLeft;
+            }
+            
+            const iOverlay = $('#inputHighlightOverlay');
+            if(iOverlay) {
+                iOverlay.scrollTop = editor.scrollTop;
+                iOverlay.scrollLeft = editor.scrollLeft;
+            }
         });
         
-        editor.addEventListener('scroll', () => lineNumbers.scrollTop = editor.scrollTop);
         editor.addEventListener('keyup', updateCursorMeta);
         editor.addEventListener('click', updateCursorMeta);
-        editor.addEventListener('keydown', handleTab);
+        
+        editor.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const size = parseInt($('#tabSize').value) || 2;
+                const insert = ' '.repeat(size);
+                this.value = this.value.substring(0, start) + insert + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + insert.length;
+                
+                updateAll();
+                const activeDoc = docs.find(d => d.id === activeDocId);
+                if (activeDoc) { activeDoc.content = this.value; saveDocs(); }
+                if ($('#autoUpdate').checked) debounceRun();
+                scheduleSnapshot();
+            }
+        });
+        
         initResizer();
+
+        window.addEventListener('resize', () => {
+          if (currentDeviceVal === 'custom') applyCustomDevice(true);
+          else applyDeviceValue(currentDeviceVal);
+        });
+
+        setInterval(() => {
+          if ($('#autoUpdate').checked && editor.value !== lastAutoRenderContent) {
+            runPreview();
+          }
+          // Nur das aktive/fokussierte Fenster darf den Live-Code für das Pop-out diktieren!
+          if (document.hasFocus()) {
+            localStorage.setItem('mustno-live-code', editor.value);
+          }
+        }, 800);
+
+      }
+
+      function escapeHTML(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+
+      function renderPresets() {
+          const list = $('#presetList');
+          if (!list) return;
+          const presets = JSON.parse(localStorage.getItem('mustno-presets') || '[]');
+          list.innerHTML = '';
+          
+          if(presets.length > 0) {
+              list.innerHTML = '<div style="font-size:9px; color:var(--dim); padding:6px 10px 2px; border-bottom:1px solid var(--panel2); margin-bottom:4px; font-weight:700; letter-spacing:1px; width:100%;">GESPEICHERT</div>';
+              presets.forEach(p => {
+                  const btn = document.createElement('button');
+                  btn.className = 'dd-item';
+                  btn.type = 'button';
+                  btn.style.width = '100%';
+                  btn.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">${escapeHTML(p.name)}</span>
+                    <span class="del-preset" data-id="${p.id}" style="color:var(--danger); font-size:14px; padding:0 4px; pointer-events:all;" title="Preset löschen">×</span>
+                  </div>`;
+                  
+                  btn.onclick = (e) => {
+                      e.stopPropagation();
+                      if(e.target.classList.contains('del-preset')) {
+                          let filtered = presets.filter(x => x.id !== p.id);
+                          localStorage.setItem('mustno-presets', JSON.stringify(filtered));
+                          renderPresets();
+                          return;
+                      }
+                      
+                      $('#cdWidth').value = p.w;
+                      $('#cdHeight').value = p.h;
+                      $('#cdInch').value = p.inch || '';
+                      $('#cdPhysical').checked = p.physical;
+                      $('#cdFoldable').checked = p.foldable;
+                      $('#cdUnfoldW').value = p.uw || 1536;
+                      $('#cdUnfoldH').value = p.uh || 2152;
+                      $('#cdUnfoldInch').value = p.uInch || '';
+                      $('#foldSettings').style.display = p.foldable ? 'flex' : 'none';
+                      $('#cdPresetName').value = p.name;
+                      
+                      $('#deviceDropdownLabel').textContent = p.name;
+                      $('#customDevicePanel').classList.add('open'); 
+                      applyCustomDevice(false);
+                      $('#deviceDropdownMenu').hidden = true;
+                  };
+                  list.appendChild(btn);
+              });
+          }
+      }
+
+      function getMonitorPPI() {
+          let stored = parseFloat(localStorage.getItem(CALIBRATION_KEY));
+          // Legacy conversion safeguard
+          if (stored && stored < 20) {
+              stored = stored * 25.4 * window.devicePixelRatio;
+              localStorage.setItem(CALIBRATION_KEY, stored);
+          }
+          return (stored && stored > 0) ? stored : 96; 
+      }
+
+      function getMigratedMonitors() {
+          let mons = JSON.parse(localStorage.getItem('mustno-monitors') || '[]');
+          let migrated = false;
+          mons = mons.map(m => {
+              if (m.ppi < 20) {
+                  m.ppi = m.ppi * 25.4 * window.devicePixelRatio;
+                  migrated = true;
+              }
+              return m;
+          });
+          if (migrated) localStorage.setItem('mustno-monitors', JSON.stringify(mons));
+          return mons;
+      }
+
+      function renderMonitors() {
+          const list = $('#monPresetList');
+          if (!list) return;
+          const mons = getMigratedMonitors();
+          list.innerHTML = '';
+          
+          const currentPPI = getMonitorPPI();
+          
+          mons.forEach(m => {
+             const isActive = Math.abs(currentPPI - m.ppi) < 0.01;
+             const btn = document.createElement('button');
+             btn.className = 'btn';
+             btn.type = 'button';
+             btn.style.cssText = `height:26px; padding:0 8px; font-size:10px; border-color:${isActive ? 'var(--accent)' : 'var(--border2)'}; background:${isActive ? 'color-mix(in srgb, var(--accent) 20%, transparent)' : 'transparent'}; color:${isActive ? 'var(--accent)' : 'var(--text)'};`;
+             btn.innerHTML = `<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">${escapeHTML(m.name)}</span> <span class="del-mon" data-id="${m.id}" style="color:var(--danger);margin-left:4px;">×</span>`;
+             
+             btn.onclick = (e) => {
+                 if (e.target.classList.contains('del-mon')) {
+                     let filtered = mons.filter(x => x.id !== m.id);
+                     localStorage.setItem('mustno-monitors', JSON.stringify(filtered));
+                     renderMonitors();
+                     return;
+                 }
+                 
+                 const w = m.w || Math.round(window.screen.width * window.devicePixelRatio);
+                 const h = m.h || Math.round(window.screen.height * window.devicePixelRatio);
+                 const d = m.d || (Math.sqrt(w * w + h * h) / m.ppi).toFixed(2);
+                 
+                 $('#monResW').value = w;
+                 $('#monResH').value = h;
+                 $('#monDiag').value = d;
+                 $('#monPresetName').value = m.name;
+
+                 localStorage.setItem(CALIBRATION_KEY, m.ppi);
+                 showToast(`Profil "${m.name}" geladen`);
+                 renderMonitors();
+                 if ($('#cdPhysical').checked) applyCustomDevice(true);
+             };
+             list.appendChild(btn);
+          });
       }
 
       function setEditor(value, message) {
-        editor.value = value;
-        const activeDoc = docs.find(d => d.id === activeDocId);
-        if (activeDoc) {
-          activeDoc.content = value;
-          saveDocs();
-        }
-        updateAll();
-        runPreview();
+        commitPendingSnapshot();
+        pushHistory(editor.value);
+        lastSnapshot = value;
+        applyEditorValue(value);
         showToast(message);
       }
 
@@ -677,7 +1765,26 @@
         $('#chars').textContent = String(code.length);
         $('#linesCount').textContent = String(code.split('\n').length);
         $('#size').textContent = bytes(code);
-        sourceOutput.value = code;
+        updateSourceHighlight();
+        
+        if ($('#colorInputToggle').checked) {
+            let hlCode = code;
+            if (hlCode.endsWith('\n')) hlCode += ' '; // Fix für <pre> Zeilenumbruch
+            $('#inputHighlightOverlay').innerHTML = highlightHTML(hlCode);
+        } else {
+            $('#inputHighlightOverlay').innerHTML = '';
+        }
+        
+        $('#inputHighlightOverlay').scrollTop = editor.scrollTop;
+        $('#inputHighlightOverlay').scrollLeft = editor.scrollLeft;
+        
+        const sOverlay = $('#searchHighlightOverlay');
+        if(sOverlay) {
+            sOverlay.scrollTop = editor.scrollTop;
+            sOverlay.scrollLeft = editor.scrollLeft;
+        }
+
+        lineNumbers.scrollTop = editor.scrollTop;
       }
 
       function updateLineNumbers() {
@@ -698,30 +1805,19 @@
       let runTimer = 0;
       function debounceRun() {
         clearTimeout(runTimer);
-        runTimer = setTimeout(runPreview, 260);
+        runTimer = setTimeout(runPreview, 250); 
       }
 
       function runPreview() {
         const code = editor.value || '<!doctype html><html><body></body></html>';
         preview.srcdoc = code;
-        sourceOutput.value = code;
-        outputMeta.textContent = `Preview aktualisiert — ${new Date().toLocaleTimeString('de-DE')}`;
+        lastAutoRenderContent = editor.value;
+        updateSourceHighlight();
+        
+        const now = new Date();
+        const options = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        outputMeta.textContent = `Preview aktualisiert — ${now.toLocaleString('de-DE', options)}`;
         $('#state').textContent = 'Rendered';
-      }
-
-      function handleTab(e) {
-        if (e.key === 'Tab') {
-          e.preventDefault();
-          const target = e.target;
-          const size = parseInt(document.getElementById('tabSize').value) || 2;
-          const insert = ' '.repeat(size);
-          const start = target.selectionStart;
-          const end = target.selectionEnd;
-          
-          target.value = target.value.substring(0, start) + insert + target.value.substring(end);
-          target.selectionStart = target.selectionEnd = start + insert.length;
-          target.dispatchEvent(new Event('input')); 
-        }
       }
 
       function beautifyHTML(input, tabSize = 2) {
@@ -756,25 +1852,23 @@
         return out.join('\n') + '\n';
       }
 
-      function minifyHTML(input) {
-        return String(input || '').replace(/<!--[\s\S]*?-->/g, '').replace(/>\s+</g, '><').replace(/\s{2,}/g, ' ').trim();
-      }
-
       function downloadHTML() {
         const code = editor.value || '';
-        const blob = new Blob([code], { type: 'text/html;charset=utf-8' });
+        const fmt = downloadFormat || 'html';
+        const mime = fmt === 'txt' ? 'text/plain;charset=utf-8' : 'text/html;charset=utf-8';
+        const blob = new Blob([code], { type: mime });
         const a = document.createElement('a');
-        
-        const activeDoc = docs.find(d => d.id === activeDocId) || { name: `html-export.html` };
-        const dlName = activeDoc.name.endsWith('.html') ? activeDoc.name : activeDoc.name + '.html';
-        
-        a.download = dlName;
+
+        const activeDoc = docs.find(d => d.id === activeDocId) || { name: 'html-export' };
+        const baseName = activeDoc.name.replace(/\.(html?|txt)$/i, '');
+
+        a.download = `${baseName}.${fmt}`;
         a.href = URL.createObjectURL(blob);
         document.body.appendChild(a);
         a.click();
         a.remove();
         URL.revokeObjectURL(a.href);
-        showToast('HTML heruntergeladen');
+        showToast(`Als .${fmt} heruntergeladen`);
       }
 
       async function copyHTML() {
@@ -810,12 +1904,1068 @@
 
       function toggleSource() {
         previewWrap.classList.toggle('show-source');
-        $('#toggleSourceBtn').textContent = previewWrap.classList.contains('show-source') ? 'Preview' : 'Source';
+        const isSource = previewWrap.classList.contains('show-source');
+        $('#toggleSourceBtn').textContent = isSource ? 'Preview' : 'Source';
+        if (isSource) updateSourceHighlight();
       }
 
       function fullscreenPreview() {
-        const target = previewWrap.classList.contains('show-source') ? sourceOutput : preview;
-        if (target.requestFullscreen) target.requestFullscreen();
+        if (previewWrap.requestFullscreen) previewWrap.requestFullscreen();
+      }
+
+      function applySizeAndScale(logicalW, logicalH, forceScale) {
+        let scale = forceScale;
+        
+        if (scale === null) {
+          const rect = previewWrap.getBoundingClientRect();
+          const availW = rect.width - 28;
+          const availH = rect.height - 28;
+          scale = Math.min(1, availW / logicalW, availH / logicalH);
+        }
+        
+        const scaleWrap = $('#scaleWrap');
+        scaleWrap.style.width = (logicalW * scale) + 'px';
+        scaleWrap.style.height = (logicalH * scale) + 'px';
+        
+        preview.style.width = logicalW + 'px';
+        preview.style.height = logicalH + 'px';
+        preview.style.transform = `scale(${scale})`;
+      }
+
+      function applyDeviceValue(val) {
+        currentDeviceVal = val;
+        $('#foldToggleBtn').style.display = 'none'; 
+        const scaleWrap = $('#scaleWrap');
+        
+        if (val === 'fit' || !val) {
+          scaleWrap.style.width = '100%';
+          scaleWrap.style.height = '100%';
+          preview.style.width = '100%';
+          preview.style.height = '100%';
+          preview.style.transform = 'scale(1)';
+          return;
+        }
+        const parts = val.split('x').map(Number);
+        applySizeAndScale(parts[0], parts[1], null);
+      }
+
+      function applyCustomDevice(silent) {
+        currentDeviceVal = 'custom';
+        const isFoldable = $('#cdFoldable').checked;
+        $('#foldToggleBtn').style.display = isFoldable ? 'inline-flex' : 'none';
+
+        let baseW = Number($('#cdWidth').value) || 390;
+        let baseH = Number($('#cdHeight').value) || 844;
+        let rawInch = String($('#cdInch').value).replace(',', '.');
+        let activeInch = Number(rawInch) || 0;
+        
+        let w = baseW;
+        let h = baseH;
+
+        if (isFoldable && isUnfolded) {
+            w = Number($('#cdUnfoldW').value) || 1536;
+            h = Number($('#cdUnfoldH').value) || 2152;
+            let rawUInch = String($('#cdUnfoldInch').value).replace(',', '.');
+            activeInch = Number(rawUInch) || activeInch;
+        }
+
+        const physical = $('#cdPhysical').checked;
+        let scale = null;
+        
+        if (physical && activeInch > 0) {
+          const logicalDiagPx = Math.sqrt(w * w + h * h);
+          const hardwarePPI = getMonitorPPI();
+          const cssPPI = hardwarePPI / window.devicePixelRatio; 
+          scale = (activeInch * cssPPI) / logicalDiagPx;
+        }
+        
+        applySizeAndScale(w, h, scale);
+        if (!silent) showToast(`Custom Device geladen`);
+      }
+
+      function initCalibration() {
+        const modal = $('#calibModal');
+        const resW = $('#monResW');
+        const resH = $('#monResH');
+        const diag = $('#monDiag');
+        const nameInp = $('#monPresetName');
+
+        $('#calibrateBtn').addEventListener('click', () => {
+          const currentPPI = getMonitorPPI();
+          const mons = getMigratedMonitors();
+          const activeMon = mons.find(m => Math.abs(m.ppi - currentPPI) < 0.01);
+          
+          if (activeMon) {
+              const w = activeMon.w || Math.round(window.screen.width * window.devicePixelRatio);
+              const h = activeMon.h || Math.round(window.screen.height * window.devicePixelRatio);
+              const d = activeMon.d || (Math.sqrt(w * w + h * h) / activeMon.ppi).toFixed(2);
+              resW.value = w;
+              resH.value = h;
+              diag.value = d;
+              nameInp.value = activeMon.name;
+          } else {
+              resW.value = Math.round(window.screen.width * window.devicePixelRatio);
+              resH.value = Math.round(window.screen.height * window.devicePixelRatio);
+          }
+          modal.classList.add('show');
+        });
+
+        $('#calibCancelBtn').addEventListener('click', () => modal.classList.remove('show'));
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+        
+        $('#saveMonPresetBtn').addEventListener('click', () => {
+          const w = Number(resW.value);
+          const h = Number(resH.value);
+          
+          const rawDiag = String(diag.value).replace(',', '.');
+          const d = Number(rawDiag);
+          
+          const name = nameInp.value.trim() || 'Monitor';
+          
+          if (!w || !h || !d) {
+            showToast('Bitte alle Felder (auch Diagonale) ausfüllen!');
+            if(!d) {
+              diag.style.borderColor = 'var(--danger)';
+              setTimeout(() => diag.style.borderColor = '', 1500);
+              diag.focus();
+            }
+            return;
+          }
+
+          const diagPx = Math.sqrt(w * w + h * h);
+          const hardwarePPI = diagPx / d;
+
+          let mons = JSON.parse(localStorage.getItem('mustno-monitors') || '[]');
+          const existingIdx = mons.findIndex(m => m.name === name);
+          const monObj = { id: existingIdx >= 0 ? mons[existingIdx].id : 'mon-' + Date.now(), name, ppi: hardwarePPI, w, h, d };
+          
+          if (existingIdx >= 0) {
+              mons[existingIdx] = monObj;
+          } else {
+              mons.push(monObj);
+          }
+
+          localStorage.setItem('mustno-monitors', JSON.stringify(mons));
+          localStorage.setItem(CALIBRATION_KEY, hardwarePPI);
+          
+          nameInp.value = name;
+          renderMonitors();
+          showToast(`Monitor Profil "${name}" gespeichert!`);
+          if ($('#cdPhysical').checked) applyCustomDevice(true);
+        });
+      }
+
+      function initDeviceDropdown() {
+        const trigger = $('#deviceDropdownBtn');
+        const label = $('#deviceDropdownLabel');
+        const menu = $('#deviceDropdownMenu');
+        const items = Array.from(menu.querySelectorAll('.dd-item'));
+        const customPanel = $('#customDevicePanel');
+
+        function openMenu() { menu.hidden = false; trigger.setAttribute('aria-expanded', 'true'); }
+        function closeMenu() { menu.hidden = true; trigger.setAttribute('aria-expanded', 'false'); }
+
+        trigger.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (menu.hidden) {
+              const dlMenu = $('#downloadMenu');
+              if (dlMenu && !dlMenu.hidden) {
+                  dlMenu.hidden = true;
+                  const dlBtn = $('#downloadCaretBtn');
+                  if (dlBtn) dlBtn.setAttribute('aria-expanded', 'false');
+              }
+          }
+          menu.hidden ? openMenu() : closeMenu();
+        });
+
+        items.forEach(item => {
+          if(!item.classList.contains('active') && !item.hasAttribute('data-value')) return; 
+          
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const val = item.dataset.value;
+            menu.querySelectorAll('.dd-item').forEach(i => i.classList.toggle('active', i === item));
+            if (val === 'custom') {
+              label.textContent = 'Benutzerdefiniert…';
+              customPanel.classList.add('open');
+              applyCustomDevice(true);
+              return;
+            }
+            customPanel.classList.remove('open');
+            label.textContent = item.textContent;
+            applyDeviceValue(val);
+            closeMenu();
+          });
+        });
+
+        ['cdWidth', 'cdHeight', 'cdInch', 'cdPhysical', 'cdUnfoldW', 'cdUnfoldH', 'cdUnfoldInch'].forEach(id => {
+          const el = document.getElementById(id);
+          if(!el) return;
+          el.addEventListener('click', (e) => e.stopPropagation());
+          el.addEventListener('input', () => applyCustomDevice(true));
+        });
+        $('#calibrateBtn').addEventListener('click', (e) => e.stopPropagation());
+
+        document.addEventListener('click', (e) => {
+          if (!menu.hidden && !e.target.closest('#deviceDropdown')) closeMenu();
+        });
+      }
+
+      function initDownloadDropdown() {
+        const caret = $('#downloadCaretBtn');
+        const menu = $('#downloadMenu');
+        const items = Array.from(menu.querySelectorAll('.dd-item'));
+
+        caret.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (menu.hidden) {
+              const devMenu = $('#deviceDropdownMenu');
+              if (devMenu && !devMenu.hidden) {
+                  devMenu.hidden = true;
+                  const devBtn = $('#deviceDropdownBtn');
+                  if (devBtn) devBtn.setAttribute('aria-expanded', 'false');
+              }
+          }
+          menu.hidden = !menu.hidden;
+          caret.setAttribute('aria-expanded', String(!menu.hidden));
+        });
+
+        items.forEach(item => {
+          item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            downloadFormat = item.dataset.fmt;
+            items.forEach(i => i.classList.toggle('active', i === item));
+            menu.hidden = true;
+            showToast(`Speicherformat: .${downloadFormat}`);
+          });
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!menu.hidden && !e.target.closest('#downloadDropdownWrap')) menu.hidden = true;
+        });
+      }
+
+      function highlightHTML(code) {
+          if (!code) return '';
+          
+          let tokens = [];
+          const T = (cls, val) => {
+              tokens.push(`<span class="${cls}">${val}</span>`);
+              return `___T${tokens.length - 1}___`;
+          };
+
+          let escaped = String(code)
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#39;');
+          
+          let blocks = [];
+          escaped = escaped.replace(/(&lt;script[\s\S]*?&gt;)([\s\S]*?)(&lt;\/script&gt;)/gi, (m, op, cont, cl) => {
+              blocks.push({ type: 'js', op, cont, cl });
+              return `___B${blocks.length - 1}___`;
+          });
+          escaped = escaped.replace(/(&lt;style[\s\S]*?&gt;)([\s\S]*?)(&lt;\/style&gt;)/gi, (m, op, cont, cl) => {
+              blocks.push({ type: 'css', op, cont, cl });
+              return `___B${blocks.length - 1}___`;
+          });
+
+          let out = escaped.replace(/(&lt;!--[\s\S]*?--&gt;)/g, m => T('tok-comment', m));
+
+          const tagRep = (m, p1, tag, attrs, p4) => {
+              let a = attrs.replace(/([a-zA-Z0-9_:\.-]+)(?:(=)(&quot;[\s\S]*?&quot;|&#39;[\s\S]*?&#39;|[^\s]+))?/g, (m2, aName, eq, aVal) => {
+                  return T('tok-attr', aName) + (eq ? T('tok-punct', '=') : '') + (aVal ? T('tok-string', aVal) : '');
+              });
+              return T('tok-punct', p1) + T('tok-tag', tag) + a + T('tok-punct', p4);
+          };
+          out = out.replace(/(&lt;\/?)([a-zA-Z0-9_:\.-]+)([\s\S]*?)(\/?&gt;)/g, tagRep);
+
+          blocks.forEach((b, i) => {
+              let op = b.op.replace(/(&lt;\/?)([a-zA-Z0-9_:\.-]+)([\s\S]*?)(\/?&gt;)/g, tagRep);
+              let cl = b.cl.replace(/(&lt;\/?)([a-zA-Z0-9_:\.-]+)([\s\S]*?)(\/?&gt;)/g, tagRep);
+              let hc = b.cont;
+
+              hc = hc.replace(/&(lt|gt|amp|quot|#39);/gi, m => T('tok-punct', m));
+
+              if (b.type === 'js') {
+                  hc = hc.replace(/(\/\/.*|\/\*[\s\S]*?\*\/)/g, m => T('tok-comment', m));
+                  hc = hc.replace(/(&quot;[\s\S]*?&quot;|&#39;[\s\S]*?&#39;|`[\s\S]*?`)/g, m => T('tok-string', m));
+                  hc = hc.replace(/\b(true|false|null|undefined)\b/g, m => T('tok-number', m));
+                  hc = hc.replace(/\b(var|let|const|function|return|if|else|for|while|do|switch|case|break|continue|class|extends|super|import|export|from|try|catch|finally|throw|new|this|typeof|instanceof|await|async|yield|default|document|window|console|Math|Object|Array|String|Number|Boolean|Promise)\b/g, m => T('tok-keyword', m));
+                  hc = hc.replace(/\b(\d+(\.\d+)?)\b/g, m => T('tok-number', m));
+                  hc = hc.replace(/([a-zA-Z_$][0-9a-zA-Z_$]*)(?=\s*\()/g, m => T('tok-fn', m));
+                  hc = hc.replace(/\b([a-zA-Z_$][0-9a-zA-Z_$]*)\b/g, m => T('tok-var', m));
+              } else if (b.type === 'css') {
+                  hc = hc.replace(/(\/\*[\s\S]*?\*\/)/g, m => T('tok-comment', m));
+                  hc = hc.replace(/([\.#]?[a-zA-Z0-9_-]+)(?=\s*\{)/g, m => T('tok-fn', m));
+                  hc = hc.replace(/([a-zA-Z0-9_-]+)\s*(?=:)/g, m => T('tok-attr', m));
+                  hc = hc.replace(/(:\s*)([^;{}]+)(;)/g, (m, p1, p2, p3) => p1 + T('tok-string', p2) + p3);
+              }
+              out = out.replace(`___B${i}___`, op + hc + cl);
+          });
+
+          let iters = 15;
+          while(/___T\d+___/.test(out) && iters-- > 0) {
+              out = out.replace(/___T(\d+)___/g, (m, id) => tokens[id] || m);
+          }
+          return out;
+      }
+
+      let highlightTimer = null;
+      function updateSourceHighlight() {
+        if (!previewWrap.classList.contains('show-source')) return;
+        clearTimeout(highlightTimer);
+        highlightTimer = setTimeout(() => {
+            const code = editor.value || ''; 
+            const lines = code.split('\n');
+            let numbers = '';
+            for (let i = 1; i <= lines.length; i++) numbers += i + (i === lines.length ? '' : '\n');
+            $('#srcLineNumbers').textContent = numbers || '1';
+            $('#sourceCodeInner').innerHTML = highlightHTML(code);
+        }, 150); 
+      }
+
+      function popupScriptSource() {
+        var CALIBRATION_KEY = 'mustno-mon-ppi';
+        var downloadFormat = 'html';
+        var safeStorage;
+        try {
+            safeStorage = (window.opener && window.opener.localStorage) ? window.opener.localStorage : localStorage;
+        } catch(e) {
+            safeStorage = window.localStorage || { getItem: function(){}, setItem: function(){} };
+        }
+        var iframe = document.getElementById('popPreview');
+        var currentDeviceVal = 'fit';
+        var isUnfolded = false;
+
+        iframe.srcdoc = window.__CODE__ || '';
+
+        function getMonitorPPI() {
+          try {
+            var stored = parseFloat(safeStorage.getItem(CALIBRATION_KEY));
+            if (stored && stored < 20) {
+                stored = stored * 25.4 * window.devicePixelRatio;
+                safeStorage.setItem(CALIBRATION_KEY, stored);
+            }
+            return (stored && stored > 0) ? stored : 96;
+          } catch(e) { return 96; }
+        }
+
+        var topbar = document.getElementById('popTopbar');
+        var grip = document.getElementById('popGrip');
+        var pinBtn = document.getElementById('popPin');
+        var refreshBtn = document.getElementById('popRefresh');
+        var pinned = false;
+        var hideTimer = null;
+        var isHoveringBar = false; 
+        
+        var devMenu = document.getElementById('popDeviceMenu');
+        var dlMenu = document.getElementById('popDownloadMenu');
+
+        function showBar() {
+          clearTimeout(hideTimer);
+          topbar.classList.add('show');
+          grip.style.top = topbar.getBoundingClientRect().height + 'px';
+          if (!pinned && devMenu.hidden && dlMenu.hidden && !isHoveringBar) hideTimer = setTimeout(hideBar, 2600);
+        }
+        function hideBar() {
+          if (pinned || !devMenu.hidden || !dlMenu.hidden || isHoveringBar) return;
+          topbar.classList.remove('show');
+          grip.style.top = '0px';
+        }
+
+        grip.addEventListener('click', function () {
+          if (topbar.classList.contains('show')) { pinned = false; hideBar(); }
+          else showBar();
+        });
+        topbar.addEventListener('mouseenter', function() {
+            isHoveringBar = true;
+            showBar();
+        });
+        topbar.addEventListener('mouseleave', function () { 
+            isHoveringBar = false;
+            if (!pinned && devMenu.hidden && dlMenu.hidden) hideTimer = setTimeout(hideBar, 1200); 
+        });
+        topbar.addEventListener('focusin', showBar);
+        document.addEventListener('mousemove', function (e) { if (e.clientY < 14) showBar(); });
+
+        pinBtn.addEventListener('click', function () {
+          pinned = !pinned;
+          topbar.classList.toggle('pinned', pinned);
+          pinBtn.textContent = pinned ? '📌 Fixiert' : '📌 Fixieren';
+          if (pinned) showBar(); else hideTimer = setTimeout(hideBar, 1200);
+        });
+        
+        refreshBtn.addEventListener('click', function () {
+          try {
+            if (window.opener && !window.opener.closed) {
+              var mainEditor = window.opener.document.getElementById('editor');
+              if (mainEditor) window.__CODE__ = mainEditor.value;
+            }
+          } catch(e) { console.warn("Cross-origin access restricted."); }
+          iframe.srcdoc = window.__CODE__ || '';
+        });
+
+        document.getElementById('popClose').addEventListener('click', function () { window.close(); });
+
+        var devBtn = document.getElementById('popDeviceBtn');
+        var devLabel = document.getElementById('popDeviceLabel');
+        var devItems = Array.from(devMenu.querySelectorAll('.dd-item'));
+        var devCustomPanel = document.getElementById('popCustomPanel');
+
+        devBtn.addEventListener('click', function(e) { 
+          e.stopPropagation(); 
+          if (devMenu.hidden && !dlMenu.hidden) dlMenu.hidden = true;
+          devMenu.hidden = !devMenu.hidden; 
+          showBar();
+        });
+        
+        function applySizeAndScale(logicalW, logicalH, forceScale) {
+            var scale = forceScale;
+            if (scale === null) {
+                var stage = document.getElementById('popStage');
+                var rect = stage.getBoundingClientRect();
+                var availW = rect.width - 40;
+                var availH = rect.height - 40;
+                scale = Math.min(1, availW / logicalW, availH / logicalH);
+            }
+            
+            var wrap = document.getElementById('popScaleWrap');
+            wrap.style.width = (logicalW * scale) + 'px';
+            wrap.style.height = (logicalH * scale) + 'px';
+            
+            iframe.style.width = logicalW + 'px';
+            iframe.style.height = logicalH + 'px';
+            iframe.style.transform = 'scale(' + scale + ')';
+        }
+
+        function applyCustom() {
+            currentDeviceVal = 'custom';
+            var isFoldable = document.getElementById('popCdFoldable').checked;
+            document.getElementById('popFoldToggleBtn').style.display = isFoldable ? 'inline-flex' : 'none';
+
+            var baseW = Number(document.getElementById('popCdWidth').value) || 390;
+            var baseH = Number(document.getElementById('popCdHeight').value) || 844;
+            var rawInch = String(document.getElementById('popCdInch').value).replace(',', '.');
+            var activeInch = Number(rawInch) || 0;
+            
+            var w = baseW;
+            var h = baseH;
+
+            if (isFoldable && isUnfolded) {
+                w = Number(document.getElementById('popCdUnfoldW').value) || 1536;
+                h = Number(document.getElementById('popCdUnfoldH').value) || 2152;
+                var rawUInch = String(document.getElementById('popCdUnfoldInch').value).replace(',', '.');
+                activeInch = Number(rawUInch) || activeInch;
+            }
+            
+            var physical = document.getElementById('popCdPhysical').checked;
+            var scale = null;
+            
+            if (physical && activeInch > 0) {
+                var logicalDiagPx = Math.sqrt(w * w + h * h);
+                var hardwarePPI = getMonitorPPI();
+                var cssPPI = hardwarePPI / window.devicePixelRatio;
+                scale = (activeInch * cssPPI) / logicalDiagPx;
+            }
+            
+            applySizeAndScale(w, h, scale);
+        }
+
+        function applyDevice(val) {
+            currentDeviceVal = val;
+            document.getElementById('popFoldToggleBtn').style.display = 'none';
+            var wrap = document.getElementById('popScaleWrap');
+            if (val === 'fit' || !val) {
+                wrap.style.width = '100%';
+                wrap.style.height = '100%';
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.transform = 'scale(1)';
+                return;
+            }
+            var parts = val.split('x');
+            applySizeAndScale(Number(parts[0]), Number(parts[1]), null);
+        }
+
+        window.addEventListener('resize', function() {
+          if (currentDeviceVal === 'custom') applyCustom();
+          else applyDevice(currentDeviceVal);
+        });
+
+        document.getElementById('popFoldToggleBtn').addEventListener('click', function() {
+           isUnfolded = !isUnfolded;
+           this.innerHTML = isUnfolded ? '◰ Zufalten' : '◱ Aufklappen';
+           applyCustom();
+        });
+
+        document.getElementById('popCdFoldable').addEventListener('change', function(e) {
+           document.getElementById('popFoldSettings').style.display = e.target.checked ? 'flex' : 'none';
+           applyCustom();
+        });
+
+        devItems.forEach(function(item) {
+          if(!item.classList.contains('active') && !item.hasAttribute('data-value')) return; 
+
+          item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var val = item.dataset.value;
+            devItems.forEach(function(i) { i.classList.toggle('active', i === item); });
+            if (val === 'custom') {
+              devLabel.textContent = 'Benutzerdefiniert…';
+              devCustomPanel.classList.add('open');
+              applyCustom();
+              return;
+            }
+            devCustomPanel.classList.remove('open');
+            devLabel.textContent = item.textContent;
+            applyDevice(val);
+            devMenu.hidden = true;
+            if (!pinned && !isHoveringBar) hideTimer = setTimeout(hideBar, 1200);
+          });
+        });
+
+        ['popCdWidth', 'popCdHeight', 'popCdInch', 'popCdPhysical', 'popCdUnfoldW', 'popCdUnfoldH', 'popCdUnfoldInch'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if(!el) return;
+          el.addEventListener('input', function(e) { e.stopPropagation(); applyCustom(); });
+          el.addEventListener('click', function(e) { e.stopPropagation(); });
+        });
+
+        document.getElementById('popSavePresetBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            var name = document.getElementById('popPresetName').value.trim() || 'Custom Preset';
+            var presets = JSON.parse(safeStorage.getItem('mustno-presets') || '[]');
+            var preset = {
+                id: 'preset-' + Date.now(),
+                name: name,
+                w: document.getElementById('popCdWidth').value,
+                h: document.getElementById('popCdHeight').value,
+                inch: document.getElementById('popCdInch').value,
+                physical: document.getElementById('popCdPhysical').checked,
+                foldable: document.getElementById('popCdFoldable').checked,
+                uw: document.getElementById('popCdUnfoldW').value,
+                uh: document.getElementById('popCdUnfoldH').value,
+                uInch: document.getElementById('popCdUnfoldInch').value
+            };
+            
+            var existingIdx = presets.findIndex(function(p) { return p.name === name; });
+            if (existingIdx >= 0) {
+                preset.id = presets[existingIdx].id;
+                presets[existingIdx] = preset;
+            } else {
+                presets.push(preset);
+            }
+            
+            try { 
+                safeStorage.setItem('mustno-presets', JSON.stringify(presets)); 
+                if(window.opener && typeof window.opener._renderPresetsGlobal === 'function') {
+                    window.opener._renderPresetsGlobal();
+                }
+            } catch(err){}
+            document.getElementById('popPresetName').value = name;
+            document.getElementById('popDeviceLabel').textContent = name;
+            popRenderPresets();
+        });
+
+        function popRenderPresets() {
+            var list = document.getElementById('popPresetList');
+            if (!list) return;
+            var presets = JSON.parse(safeStorage.getItem('mustno-presets') || '[]');
+            list.innerHTML = '';
+            if(presets.length > 0) {
+                list.innerHTML = '<div style="font-size:9px; color:var(--dim); padding:6px 10px 2px; border-bottom:1px solid var(--panel2); margin-bottom:4px; font-weight:700; letter-spacing:1px; width:100%;">GESPEICHERT</div>';
+                presets.forEach(function(p) {
+                    var btn = document.createElement('button');
+                    btn.className = 'dd-item';
+                    btn.type = 'button';
+                    btn.style.width = '100%';
+                    btn.innerHTML = '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                      '<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%;">' + p.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span>' +
+                      '<span class="del-preset" data-id="' + p.id + '" style="color:#ff5b7d; font-size:14px; padding:0 4px; pointer-events:all;" title="Preset löschen">×</span>' +
+                    '</div>';
+                    
+                    btn.onclick = function(e) {
+                        e.stopPropagation();
+                        if(e.target.classList.contains('del-preset')) {
+                            var filtered = presets.filter(function(x) { return x.id !== p.id; });
+                            try { 
+                                safeStorage.setItem('mustno-presets', JSON.stringify(filtered)); 
+                                if(window.opener && typeof window.opener._renderPresetsGlobal === 'function') {
+                                    window.opener._renderPresetsGlobal();
+                                }
+                            } catch(err){}
+                            popRenderPresets();
+                            return;
+                        }
+                        
+                        document.getElementById('popCdWidth').value = p.w;
+                        document.getElementById('popCdHeight').value = p.h;
+                        document.getElementById('popCdInch').value = p.inch || '';
+                        document.getElementById('popCdPhysical').checked = p.physical;
+                        document.getElementById('popCdFoldable').checked = p.foldable;
+                        document.getElementById('popCdUnfoldW').value = p.uw || 1536;
+                        document.getElementById('popCdUnfoldH').value = p.uh || 2152;
+                        document.getElementById('popCdUnfoldInch').value = p.uInch || '';
+                        document.getElementById('popFoldSettings').style.display = p.foldable ? 'flex' : 'none';
+                        document.getElementById('popPresetName').value = p.name;
+                        
+                        document.getElementById('popDeviceLabel').textContent = p.name;
+                        document.getElementById('popCustomPanel').classList.add('open');
+                        applyCustom();
+                        document.getElementById('popDeviceMenu').hidden = true;
+                    };
+                    list.appendChild(btn);
+                });
+            }
+        }
+
+        function getMigratedMonitorsPop() {
+            try {
+                var mons = JSON.parse(safeStorage.getItem('mustno-monitors') || '[]');
+                var migrated = false;
+                mons = mons.map(function(m) {
+                    if (m.ppi < 20) {
+                        m.ppi = m.ppi * 25.4 * window.devicePixelRatio;
+                        migrated = true;
+                    }
+                    return m;
+                });
+                if (migrated) safeStorage.setItem('mustno-monitors', JSON.stringify(mons));
+                return mons;
+            } catch(e) { return []; }
+        }
+
+        function popRenderMonitors() {
+            var list = document.getElementById('popMonPresetList');
+            if (!list) return;
+            var mons = getMigratedMonitorsPop();
+            list.innerHTML = '';
+            var currentPPI = getMonitorPPI();
+            
+            mons.forEach(function(m) {
+               var isActive = Math.abs(currentPPI - m.ppi) < 0.01;
+               var btn = document.createElement('button');
+               btn.className = 'btn';
+               btn.type = 'button';
+               btn.style.cssText = 'height:26px; padding:0 8px; font-size:10px; border-color:' + (isActive ? 'var(--accent)' : 'var(--border2)') + '; background:' + (isActive ? 'color-mix(in srgb, var(--accent) 20%, transparent)' : 'transparent') + '; color:' + (isActive ? 'var(--accent)' : 'var(--text)') + ';';
+               btn.innerHTML = '<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;">' + m.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span> <span class="del-mon" data-id="' + m.id + '" style="color:#ff5b7d;margin-left:4px;">×</span>';
+               
+               btn.onclick = function(e) {
+                   if (e.target.classList.contains('del-mon')) {
+                       var filtered = mons.filter(function(x) { return x.id !== m.id; });
+                       try { 
+                           safeStorage.setItem('mustno-monitors', JSON.stringify(filtered)); 
+                           if(window.opener && typeof window.opener._syncMonitorsGlobal === 'function') window.opener._syncMonitorsGlobal();
+                       } catch(err){}
+                       popRenderMonitors();
+                       return;
+                   }
+                   
+                   var w = m.w || Math.round(window.screen.width * window.devicePixelRatio);
+                   var h = m.h || Math.round(window.screen.height * window.devicePixelRatio);
+                   var d = m.d || (Math.sqrt(w * w + h * h) / m.ppi).toFixed(2);
+                   
+                   document.getElementById('popMonResW').value = w;
+                   document.getElementById('popMonResH').value = h;
+                   document.getElementById('popMonDiag').value = d;
+                   document.getElementById('popMonPresetName').value = m.name;
+
+                   try { 
+                       safeStorage.setItem(CALIBRATION_KEY, m.ppi); 
+                       if(window.opener && typeof window.opener._syncMonitorsGlobal === 'function') window.opener._syncMonitorsGlobal();
+                   } catch(err){}
+                   popRenderMonitors();
+                   if (document.getElementById('popCdPhysical').checked) applyCustom();
+               };
+               list.appendChild(btn);
+            });
+        }
+
+        var liveSyncToggle = document.getElementById('popLiveSync');
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'mustno-live-code' && liveSyncToggle && liveSyncToggle.checked) {
+                if (window.__CODE__ !== e.newValue) {
+                    window.__CODE__ = e.newValue;
+                    iframe.srcdoc = window.__CODE__ || '';
+                }
+            }
+            if (e.key === 'mustno-presets') popRenderPresets();
+            if (e.key === 'mustno-monitors') popRenderMonitors();
+            if (e.key === CALIBRATION_KEY) {
+                popRenderMonitors();
+                if (document.getElementById('popCdPhysical').checked) applyCustom();
+            }
+        });
+
+        if (liveSyncToggle) {
+            liveSyncToggle.addEventListener('change', function(e) {
+                if (e.target.checked) {
+                    try {
+                        window.__CODE__ = safeStorage.getItem('mustno-live-code') || '';
+                        if (window.opener && !window.opener.closed) {
+                            var mainEditor = window.opener.document.getElementById('editor');
+                            if (mainEditor) window.__CODE__ = mainEditor.value;
+                        }
+                        iframe.srcdoc = window.__CODE__ || '';
+                    } catch(err) {}
+                }
+            });
+        }
+        
+        popRenderPresets();
+        popRenderMonitors();
+
+        var dlBtn = document.getElementById('popSaveBtn');
+        var dlCaret = document.getElementById('popSaveCaret');
+
+        dlCaret.addEventListener('click', function(e) { 
+          e.stopPropagation(); 
+          if (dlMenu.hidden && !devMenu.hidden) devMenu.hidden = true;
+          dlMenu.hidden = !dlMenu.hidden; 
+          showBar();
+        });
+        
+        Array.from(dlMenu.querySelectorAll('.dd-item')).forEach(function(item) {
+          item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            downloadFormat = item.dataset.fmt;
+            Array.from(dlMenu.querySelectorAll('.dd-item')).forEach(function(i) { i.classList.toggle('active', i === item); });
+            dlMenu.hidden = true;
+            if (!pinned && !isHoveringBar) hideTimer = setTimeout(hideBar, 1200);
+          });
+        });
+
+        dlBtn.addEventListener('click', function () {
+          var mime = downloadFormat === 'txt' ? 'text/plain' : 'text/html';
+          var blob = new Blob([window.__CODE__ || ''], { type: mime });
+          var a = document.createElement('a');
+          a.download = 'preview.' + downloadFormat;
+          a.href = URL.createObjectURL(blob);
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(a.href);
+        });
+
+        document.addEventListener('click', function(e) {
+          let closed = false;
+          if (!devMenu.hidden && !e.target.closest('#popDeviceDropdown')) { devMenu.hidden = true; closed = true; }
+          if (!dlMenu.hidden && !e.target.closest('#popDownloadWrap')) { dlMenu.hidden = true; closed = true; }
+          if (closed && !pinned && !isHoveringBar) { hideTimer = setTimeout(hideBar, 1200); }
+        });
+
+        var calibBtn = document.getElementById('popCalibrateBtn');
+        var modal = document.getElementById('popCalibModal');
+        var resW = document.getElementById('popMonResW');
+        var resH = document.getElementById('popMonResH');
+        var diag = document.getElementById('popMonDiag');
+        var nameInp = document.getElementById('popMonPresetName');
+
+        calibBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          var currentPPI = getMonitorPPI();
+          var mons = getMigratedMonitorsPop();
+          var activeMon = mons.find(function(m) { return Math.abs(m.ppi - currentPPI) < 0.01; });
+          
+          if (activeMon) {
+              var w = activeMon.w || Math.round(window.screen.width * window.devicePixelRatio);
+              var h = activeMon.h || Math.round(window.screen.height * window.devicePixelRatio);
+              var d = activeMon.d || (Math.sqrt(w * w + h * h) / activeMon.ppi).toFixed(2);
+              resW.value = w;
+              resH.value = h;
+              diag.value = d;
+              nameInp.value = activeMon.name;
+          } else {
+              resW.value = Math.round(window.screen.width * window.devicePixelRatio);
+              resH.value = Math.round(window.screen.height * window.devicePixelRatio);
+          }
+          modal.classList.add('show');
+        });
+        
+        document.getElementById('popCalibCancelBtn').addEventListener('click', function() { modal.classList.remove('show'); });
+        modal.addEventListener('click', function(e) { if (e.target === modal) modal.classList.remove('show'); });
+        
+        // Escape zum Schließen des Modals im Popout
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && modal.classList.contains('show')) {
+            modal.classList.remove('show');
+          }
+        });
+        
+        document.getElementById('popSaveMonPresetBtn').addEventListener('click', function() {
+          var w = Number(resW.value);
+          var h = Number(resH.value);
+          var rawDiag = String(diag.value).replace(',', '.');
+          var d = Number(rawDiag);
+          var name = nameInp.value.trim() || 'Monitor';
+          
+          if (!w || !h || !d) {
+             alert('Bitte alle Felder (auch Diagonale) ausfüllen!');
+             if(!d) diag.focus();
+             return;
+          }
+
+          var diagPx = Math.sqrt(w * w + h * h);
+          var hardwarePPI = diagPx / d;
+
+          var mons = JSON.parse(safeStorage.getItem('mustno-monitors') || '[]');
+          var existingIdx = mons.findIndex(function(m) { return m.name === name; });
+          var monObj = { id: existingIdx >= 0 ? mons[existingIdx].id : 'mon-' + Date.now(), name: name, ppi: hardwarePPI, w: w, h: h, d: d };
+          
+          if (existingIdx >= 0) {
+              mons[existingIdx] = monObj;
+          } else {
+              mons.push(monObj);
+          }
+          
+          try { 
+            safeStorage.setItem('mustno-monitors', JSON.stringify(mons));
+            safeStorage.setItem(CALIBRATION_KEY, hardwarePPI);
+            if(window.opener && typeof window.opener._syncMonitorsGlobal === 'function') {
+                window.opener._syncMonitorsGlobal();
+            }
+          } catch(e) {}
+          
+          nameInp.value = name;
+          popRenderMonitors();
+          if (document.getElementById('popCdPhysical').checked) applyCustom();
+        });
+
+        showBar();
+      }
+
+      function buildPopupTemplate(theme) {
+        const scriptOpen = '<sc' + 'ript>';
+        const scriptClose = '</sc' + 'ript>';
+        
+        return `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Preview — MUSTNO</title>
+<style>
+  :root{
+    --bg:${theme.bg}; --bg2:${theme.bg}; --accent:${theme.accent}; --green:${theme.green};
+    --text:${theme.text}; --border:${theme.border};
+    --panel:color-mix(in srgb, ${theme.bg} 88%, white 4%);
+    --panel2:color-mix(in srgb, ${theme.bg} 82%, transparent);
+    --dim:color-mix(in srgb, ${theme.text} 56%, transparent);
+    --shadow:0 24px 90px rgba(0,0,0,.38);
+    --font-mono:"Space Mono", ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  [hidden] { display: none !important; }
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;}
+  
+  #popTopbar{
+    position:fixed; top:0; left:0; right:0; z-index:10;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:10px 14px; background:color-mix(in srgb, var(--bg) 88%, black 6%);
+    border-bottom:1px solid var(--border); direction:ltr !important;
+    transform:translateY(-100%); transition:transform .22s ease;
+    font-family:var(--font-mono); color:var(--text);
+  }
+  #popTopbar.show, #popTopbar.pinned{ transform:translateY(0); }
+  
+  .btn, .pop-btn {
+    height:32px; border-radius:8px; border:1px solid var(--border);
+    background:color-mix(in srgb, var(--panel) 70%, transparent); color:var(--text);
+    font:700 11px var(--font-mono); padding:0 12px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:8px; white-space:nowrap; outline:none;
+    transition: border-color .18s ease, color .18s ease;
+  }
+  .btn:hover, .pop-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .btn.success { border-color: color-mix(in srgb, var(--green) 50%, transparent); background: color-mix(in srgb, var(--green) 14%, var(--panel)); color: var(--green); }
+  .btn.success:hover { border-color: var(--green); color: var(--green); box-shadow: 0 0 12px color-mix(in srgb, var(--green) 20%, transparent); }
+
+  .dd { position: relative; display: inline-flex; }
+  .dd-trigger { gap: 8px; padding: 0 10px; }
+  .dd-caret { font-size: 9px; opacity: .7; }
+  .dd-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 15; min-width: 250px; max-width: 320px; max-height: 60vh; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 2px; padding: 6px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--panel) 96%, black 4%); box-shadow: var(--shadow); }
+  .dd-menu::-webkit-scrollbar { width: 6px; }
+  .dd-menu::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+  .dd-menu-right { left: auto; right: 0; min-width: 200px; }
+  .dd-item { text-align: left; background: transparent; border: 0; border-radius: 8px; padding: 9px 10px; color: var(--text); font: 700 11px var(--font-mono); cursor: pointer; white-space: normal; }
+  .dd-item:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+  .dd-item.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); box-shadow: inset 2px 0 0 var(--accent); }
+  
+  .dd-custom-panel { display: none; flex-direction: column; gap: 8px; padding: 0 2px; margin-top: 0; border-top: 0 solid var(--border); }
+  .dd-custom-panel.open { display: flex; margin-top: 4px; padding: 10px 2px; border-top-width: 1px; }
+  .dd-custom-row { display: flex; align-items: center; gap: 6px; }
+  .dd-custom-row input[type="number"], .dd-custom-row input[type="text"] { flex: 1; min-width: 0; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 60%, transparent); color: var(--text); padding: 0 8px; outline: none; font: 700 11px var(--font-mono); transition: border-color 0.2s; }
+  .dd-custom-row input:focus { border-color: var(--accent); }
+  .dd-x { color: var(--dim); font: 700 11px var(--font-mono); flex: 0 0 auto; }
+  .toggle { display: inline-flex; align-items: center; gap: 8px; color: var(--dim); font: 700 10px var(--font-mono); cursor: pointer; }
+  
+  .dd-split { gap: 0; }
+  .dd-split-main { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 1px solid color-mix(in srgb, var(--green) 30%, transparent); }
+  .dd-split-caret { border-top-left-radius: 0; border-bottom-left-radius: 0; width: 26px; padding: 0; justify-content: center; }
+
+  .calib-modal { position: fixed; inset: 0; z-index: 35; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,.6); backdrop-filter: blur(10px); }
+  .calib-modal.show { display: flex; }
+  .calib-box { width: min(380px, 100%); border: 1px solid color-mix(in srgb, var(--green) 32%, transparent); border-radius: 22px; background: color-mix(in srgb, var(--panel) 94%, black 6%); box-shadow: var(--shadow); padding: 22px; color: var(--text); font-family: var(--font-mono); }
+  .calib-box h2 { margin: 0 0 8px; font-size: 1.05rem; letter-spacing: -.02em; }
+  .calib-box p { margin: 0 0 16px; color: var(--dim); font: 700 11px/1.6 var(--font-mono); }
+  
+  .calib-box input { width: 100%; min-width: 0; height: 38px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text); padding: 0 12px; outline: none; font-family: var(--font-mono); transition: border-color 0.2s; box-sizing: border-box; }
+  .calib-box input:focus { border-color: var(--accent); }
+  
+  .calib-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .calib-actions button { flex: 1; }
+
+  #popGrip{
+    position:fixed; top:0; left:50%; transform:translateX(-50%); z-index:11;
+    width:56px; height:16px; border:1px solid var(--border); border-top:none;
+    border-radius:0 0 10px 10px; background:color-mix(in srgb, var(--bg) 88%, black 6%);
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    color:var(--text); font-size:10px; opacity:.75; transition:top .2s ease, opacity .2s ease;
+  }
+  #popGrip:hover{ opacity:1; }
+  
+  #popStage{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    overflow:hidden !important; padding:20px;
+    background:
+      linear-gradient(45deg, rgba(128,128,128,.12) 25%, transparent 25% 75%, rgba(128,128,128,.12) 75%),
+      linear-gradient(45deg, rgba(128,128,128,.12) 25%, transparent 25% 75%, rgba(128,128,128,.12) 75%);
+    background-position:0 0, 12px 12px; background-size:24px 24px;
+  }
+  #popScaleWrap { position: relative; flex: 0 0 auto; box-sizing: content-box; border: 1px solid var(--border); border-radius: 14px; background: transparent; overflow: visible; transition: width 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  #popPreview{ position:absolute; top:0; left:0; transform-origin: 0 0; border: none; background: #fff; box-shadow: 0 18px 50px rgba(0,0,0,.28); border-radius: 14px; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  
+  .pop-label{font:700 10px var(--font-mono); color:var(--text); opacity:.7; letter-spacing:.08em; text-transform:uppercase;}
+</style>
+</head>
+<body>
+  <div id="popGrip" title="Leiste ein-/ausblenden">⌃</div>
+  <div id="popTopbar">
+    <span class="pop-label">MUSTNO Preview</span>
+    
+    <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+        <label class="toggle" style="margin-right:10px;" title="Wenn aktiv, spiegelt sich der Code vom Hauptfenster sofort im Pop-out">
+          <input type="checkbox" id="popLiveSync" checked> Live Sync
+        </label>
+        <button id="popFoldToggleBtn" class="btn primary" style="display:none; border-radius:8px;">◱ Aufklappen</button>
+        
+        <div class="dd" id="popDeviceDropdown">
+          <button class="btn dd-trigger" id="popDeviceBtn">
+            <span id="popDeviceLabel">Fit / Responsive</span>
+            <span class="dd-caret">▾</span>
+          </button>
+          <div class="dd-menu dd-menu-right" id="popDeviceMenu" hidden>
+            <button class="dd-item active" data-value="fit" type="button">Fit / Responsive</button>
+            <div id="popPresetList" style="display:flex; flex-direction:column; gap:2px; width:100%;"></div>
+            <button class="dd-item" data-value="1920x1080" type="button">Desktop 1080p (1920×1080)</button>
+            <button class="dd-item" data-value="1366x768" type="button">Laptop (1366×768)</button>
+            <button class="dd-item" data-value="768x1024" type="button">Tablet Portrait (768×1024)</button>
+            <button class="dd-item" data-value="1024x768" type="button">Tablet Landscape (1024×768)</button>
+            <button class="dd-item" data-value="1200x1920" type="button">16:10 Portrait (1200×1920)</button>
+            <button class="dd-item" data-value="1920x1200" type="button">16:10 Landscape (1920×1200)</button>
+            <button class="dd-item" data-value="390x844" type="button">Mobile (390×844)</button>
+            <button class="dd-item" data-value="844x390" type="button">Mobile Landscape (844×390)</button>
+            <button class="dd-item" data-value="custom" type="button">Benutzerdefiniert…</button>
+            <div class="dd-custom-panel" id="popCustomPanel">
+              <div class="dd-custom-row">
+                <input type="number" id="popCdWidth" placeholder="Breite px" value="390">
+                <span class="dd-x">×</span>
+                <input type="number" id="popCdHeight" placeholder="Höhe px" value="844">
+              </div>
+              <div class="dd-custom-row">
+                <input type="text" inputmode="decimal" id="popCdInch" placeholder="Zoll (geschlossen)">
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="popCdPhysical"> Echtgröße (ca.)
+              </label>
+              
+              <label class="toggle small" style="margin-top:4px;">
+                <input type="checkbox" id="popCdFoldable"> Foldable Device
+              </label>
+              <div id="popFoldSettings" style="display:none; flex-direction:column; gap:6px; margin-top:4px; padding-left:8px; border-left:2px solid var(--accent);">
+                 <div class="dd-custom-row">
+                   <input type="number" id="popCdUnfoldW" placeholder="Offene Br." value="1536">
+                   <span class="dd-x">×</span>
+                   <input type="number" id="popCdUnfoldH" placeholder="Offene Hö." value="2152">
+                 </div>
+                 <div class="dd-custom-row">
+                   <input type="text" inputmode="decimal" id="popCdUnfoldInch" placeholder="Offene Diagonale Zoll">
+                 </div>
+              </div>
+              
+              <div style="display:flex; gap:6px; margin-top:8px; border-top:1px solid var(--border); padding-top:8px;">
+                <input type="text" id="popPresetName" placeholder="Preset Name..." maxlength="20" style="flex:1; height:28px; border-radius:6px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:white; padding:0 8px; font:700 10px var(--font-mono); outline:none;">
+                <button class="btn success" id="popSavePresetBtn" type="button" style="height:28px; padding:0 8px; font-size:10px;">Save</button>
+              </div>
+            </div>
+            <div style="margin-top: 4px; border-top: 1px solid var(--border); padding-top: 6px;">
+              <button class="btn" id="popCalibrateBtn" type="button" style="width:100%; justify-content:center;">Monitor kalibrieren</button>
+            </div>
+          </div>
+        </div>
+    
+        <button class="btn" id="popRefresh" type="button" title="Vorschau neu laden">⟳ Refresh</button>
+    
+        <div class="dd dd-split" id="popDownloadWrap">
+          <button class="btn success dd-split-main" id="popSaveBtn" title="Herunterladen">Download</button>
+          <button class="btn success dd-split-caret" id="popSaveCaret" title="Speicherformat wählen">▾</button>
+          <div class="dd-menu dd-menu-right" id="popDownloadMenu" hidden>
+            <button class="dd-item active" data-fmt="html" type="button">Als .html speichern</button>
+            <button class="dd-item" data-fmt="txt" type="button">Als .txt speichern</button>
+          </div>
+        </div>
+    
+        <button class="btn" id="popPin" type="button">📌 Fixieren</button>
+        <button class="btn" id="popClose" type="button">✕ Schließen</button>
+    </div>
+  </div>
+  
+  <div class="calib-modal" id="popCalibModal">
+    <div class="calib-box">
+      <h2>Monitor kalibrieren</h2>
+      <p>Gib die physischen Spezifikationen deines aktuellen Monitors ein, um eine <strong>100% akkurate</strong> Darstellung der Echtgröße zu berechnen.</p>
+      
+      <div id="popMonPresetList" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;"></div>
+
+      <label class="pop-label" style="display:block; margin-bottom: 6px;">Bildschirmauflösung</label>
+      <div style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="number" id="popMonResW" placeholder="Breite (px)" style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);padding:0 12px;font-family:var(--font-mono);">
+        <span style="display:flex;align-items:center;color:var(--dim);">×</span>
+        <input type="number" id="popMonResH" placeholder="Höhe (px)" style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);padding:0 12px;font-family:var(--font-mono);">
+      </div>
+      
+      <label class="pop-label" style="display:block; margin-bottom: 6px;">Bildschirmdiagonale</label>
+      <div style="display:flex; gap:8px; margin-bottom:24px;">
+        <input type="text" inputmode="decimal" id="popMonDiag" placeholder="Zoll (z.B. 27,5)" style="width:100%;height:38px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.05);color:var(--text);padding:0 12px;font-family:var(--font-mono);">
+      </div>
+
+      <div style="display:flex; gap:6px; margin-top:14px; border-top:1px solid var(--border); padding-top:12px;">
+         <input type="text" id="popMonPresetName" placeholder="Profilname (z.B. Laptop)" maxlength="20" style="flex:1; height:32px; border-radius:6px; border:1px solid var(--border); background:rgba(0,0,0,0.2); color:white; padding:0 8px; font:700 10px var(--font-mono); outline:none;">
+         <button class="btn success" id="popSaveMonPresetBtn" type="button">Speichern</button>
+      </div>
+
+      <div class="calib-actions" style="margin-top:14px;">
+        <button class="btn" id="popCalibCancelBtn" type="button">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="popStage"><div id="popScaleWrap"><iframe id="popPreview" title="Preview"></iframe></div></div>
+  <${'script'}>(${popupScriptSource.toString()})();<${'/'}script>
+</body>
+</html>`;
+      }
+
+      function openPreviewWindow() {
+        const code = editor.value || '';
+        const theme = getCurrentThemeColors();
+        const w = window.open('', '_blank', 'width=1400,height=900');
+        if (!w) { showToast('Popup blockiert – bitte im Browser erlauben'); return; }
+        w.__CODE__ = code;
+        w.document.open();
+        w.document.write(buildPopupTemplate(theme));
+        w.document.close();
+        showToast('Neues Fenster geöffnet');
       }
 
       function bytes(str) {
@@ -894,8 +3044,9 @@
           clearThemeColors();
         }
 
-        // Notify audio system if active
-        if (typeof window.playCurrentTrack === 'function') window.playCurrentTrack();
+        if (!isInit && typeof window.resetAndPlayTrack === 'function') {
+           window.resetAndPlayTrack();
+        }
 
         if (!isInit) showToast('Theme übernommen');
       }
@@ -933,6 +3084,8 @@
           border: styles.getPropertyValue('--border').trim() || '#3c64f0'
         };
       }
+
+      let currentEditId = null;
 
       function openCustomThemeModal(editId = null) {
         currentEditId = editId;
@@ -1068,10 +3221,11 @@
     })();
 
     // ==========================================
-    // MUSTNO AUDIO SYSTEM
+    // ── PREMIUM AUDIO SYSTEM (Ported from index.html) ──
     // ==========================================
     (() => {
       const AUDIO_CFG = {
+        sfx: { hover: '/sfx-hover.mp3', click: '/sfx-click.mp3' },
         bgm: {
           'default':         ['/cyber-1.mp3', '/cyber-2.mp3'],
           'theme-wii':       ['/wii-1.mp3',   '/wii-2.mp3'],
@@ -1079,81 +3233,106 @@
           'theme-cyberpunk': ['/cyberpunk-1.mp3', '/cyberpunk-2.mp3']
         }
       };
+      
+      // Custom Theme bekommt alle Tracks
+      AUDIO_CFG.bgm['theme-custom'] = [...new Set(Object.values(AUDIO_CFG.bgm).flat())];
 
-      const allTracks = [...new Set(Object.values(AUDIO_CFG.bgm).flat())];
-      AUDIO_CFG.bgm['theme-custom'] = allTracks;
+      // --- SFX (Hover & Klicks) ---
+      const sfxHover = new Audio(AUDIO_CFG.sfx.hover); sfxHover.volume = 0.15;
+      const sfxClick = new Audio(AUDIO_CFG.sfx.click); sfxClick.volume = 0.3;
+      const _sfxSelector = 'a, button, .proj, .app-card:not(.locked), .rchip, select, .feat, .nav-back, .cs-btn, .btn-primary, .btn-secondary, .audio-btn, .file-tab';
+      
+      document.addEventListener('mouseover', e => {
+        if (e.target.closest && e.target.closest(_sfxSelector)) { 
+            sfxHover.currentTime = 0; 
+            sfxHover.play().catch(()=>{}); 
+        }
+      });
+      document.addEventListener('click', e => {
+        if (e.target.closest && e.target.closest(_sfxSelector)) { 
+            sfxClick.currentTime = 0; 
+            sfxClick.play().catch(()=>{}); 
+        }
+      });
 
-      const bgmAudio = new Audio(); 
-      bgmAudio.volume = 1;
-      bgmAudio.loop = false;
-
+      // --- BGM (Hintergrundmusik) ---
+      const bgmAudio = new Audio(); bgmAudio.volume = 1; bgmAudio.loop = false;
       let isPlaying = localStorage.getItem('mustno-bgm-play') === 'true';
       let trackIdx = parseInt(localStorage.getItem('mustno-track-idx')) || 0;
+      let initialBgmTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
 
-      function getCurrentPlaylist() {
-        const tName = document.body.className.split(' ').find(c => c.startsWith('theme-')) || 'default';
-        return AUDIO_CFG.bgm[tName] || AUDIO_CFG.bgm['default'];
+      function formatTime(seconds) {
+        if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+        return `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
       }
 
       function updateBgmUI() {
         const w = document.getElementById('audio-widget');
-        const pIcon = document.getElementById('icon-play');
-        const pauseIcon = document.getElementById('icon-pause');
-        const tName = document.getElementById('bgm-track-name');
-        
         if (!w) return;
-
+        
         if (isPlaying) { 
           w.classList.add('is-playing'); 
-          pIcon.style.display = 'none'; 
-          pauseIcon.style.display = 'block'; 
+          document.getElementById('icon-play').style.display = 'none'; 
+          document.getElementById('icon-pause').style.display = 'block'; 
         } else { 
           w.classList.remove('is-playing'); 
-          pIcon.style.display = 'block'; 
-          pauseIcon.style.display = 'none'; 
+          document.getElementById('icon-play').style.display = 'block'; 
+          document.getElementById('icon-pause').style.display = 'none'; 
         }
         
-        const playlist = getCurrentPlaylist();
-        const safeIdx = (trackIdx % playlist.length) || 0;
-        tName.textContent = `TRACK ${(safeIdx + 1).toString().padStart(2, '0')}`;
+        const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
+        const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+        const safeIdx = trackIdx % playlist.length;
+        const trackNameEl = document.getElementById('bgm-track-name');
+        if(trackNameEl) trackNameEl.textContent = `TRACK 0${safeIdx + 1}`;
+        
+        if (bgmAudio.duration) {
+          const percent = (bgmAudio.currentTime / bgmAudio.duration) * 100;
+          const prog = document.getElementById('bgm-progress');
+          const timeDisp = document.getElementById('bgm-time');
+          if (prog) prog.style.width = percent + '%';
+          if (timeDisp) timeDisp.innerText = `${formatTime(bgmAudio.currentTime)} / ${formatTime(bgmAudio.duration)}`;
+        }
       }
 
       window.playCurrentTrack = function() {
-        const playlist = getCurrentPlaylist();
-        const safeIdx = (trackIdx % playlist.length) || 0;
-        bgmAudio.src = playlist[safeIdx];
-        bgmAudio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
+        const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
+        const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
+        const targetUrl = playlist[trackIdx % playlist.length];
+        
+        // Verhindert sinnloses Neuladen und setzt die Zeit synchron
+        if (!bgmAudio.src.includes(targetUrl)) {
+            bgmAudio.src = targetUrl;
+            bgmAudio.currentTime = parseFloat(localStorage.getItem('mustno-bgm-time')) || 0;
+        }
         
         if (isPlaying) {
           bgmAudio.play().catch(() => {
-            const resumePlay = () => { 
-              bgmAudio.play().catch(e => console.warn(e)); 
-              updateBgmUI(); 
-              window.removeEventListener('click', resumePlay); 
-            };
+            const resumePlay = () => { bgmAudio.play(); updateBgmUI(); window.removeEventListener('click', resumePlay); };
             window.addEventListener('click', resumePlay);
           });
         }
-        updateBgmUI();
-      }
+      };
+
+      // Wird vom Theme-Switcher aufgerufen
+      window.resetAndPlayTrack = function() {
+        trackIdx = 0;
+        localStorage.setItem('mustno-track-idx', '0'); 
+        localStorage.setItem('mustno-bgm-time', '0'); 
+        window.playCurrentTrack();
+      };
 
       window.toggleBGM = function() {
         if (bgmAudio.paused) { 
-          bgmAudio.play().then(() => { 
-            isPlaying = true; 
-            localStorage.setItem('mustno-bgm-play', 'true'); 
-            updateBgmUI(); 
-          }).catch(e => console.warn("Autoplay blockiert:", e)); 
+          bgmAudio.play().then(() => { isPlaying = true; localStorage.setItem('mustno-bgm-play', 'true'); updateBgmUI(); }); 
         } else { 
-          bgmAudio.pause(); 
-          isPlaying = false; 
-          localStorage.setItem('mustno-bgm-play', 'false'); 
-          updateBgmUI(); 
+          bgmAudio.pause(); isPlaying = false; localStorage.setItem('mustno-bgm-play', 'false'); updateBgmUI(); 
         }
       };
 
       window.nextTrack = function() {
-        const playlist = getCurrentPlaylist();
+        const tNameClass = Array.from(document.body.classList).find(c => c.startsWith('theme-')) || 'default';
+        const playlist = AUDIO_CFG.bgm[tNameClass] || AUDIO_CFG.bgm['default'];
         trackIdx = (trackIdx + 1) % playlist.length; 
         localStorage.setItem('mustno-track-idx', trackIdx); 
         localStorage.setItem('mustno-bgm-time', '0');
@@ -1162,46 +3341,41 @@
       };
 
       bgmAudio.addEventListener('ended', window.nextTrack);
-
-      function formatTime(seconds) {
-        if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
-        const m = Math.floor(seconds / 60);
-        const s = Math.floor(seconds % 60).toString().padStart(2, '0');
-        return `${m}:${s}`;
-      }
-
+      
+      let _lastTimeUpdate = 0;
       bgmAudio.addEventListener('timeupdate', () => {
-        if (bgmAudio.duration) {
-          const percent = (bgmAudio.currentTime / bgmAudio.duration) * 100;
-          const progressFill = document.getElementById('bgm-progress');
-          const timeDisplay = document.getElementById('bgm-time');
-          
-          if(progressFill) progressFill.style.width = percent + '%';
-          if(timeDisplay) timeDisplay.innerText = `${formatTime(bgmAudio.currentTime)} / ${formatTime(bgmAudio.duration)}`;
+        const now = performance.now();
+        if (now - _lastTimeUpdate > 250) {
+          _lastTimeUpdate = now;
+          updateBgmUI();
         }
       });
 
       bgmAudio.addEventListener('loadedmetadata', () => {
-        const timeDisplay = document.getElementById('bgm-time');
-        if(timeDisplay) timeDisplay.innerText = `0:00 / ${formatTime(bgmAudio.duration)}`;
+        if(initialBgmTime > 0 && initialBgmTime < bgmAudio.duration) {
+          bgmAudio.currentTime = initialBgmTime;
+          initialBgmTime = 0; // Nur beim ersten Laden
+        }
+        updateBgmUI();
       });
 
       window.seekAudio = function(e) {
         if (!bgmAudio.duration) return;
         const rect = e.currentTarget.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const percent = Math.max(0, Math.min(1, clickX / rect.width));
+        const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         
         bgmAudio.currentTime = percent * bgmAudio.duration;
         localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime);
+        updateBgmUI();
       };
 
       setInterval(() => { 
-        if (!bgmAudio.paused) localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime); 
+        if (!bgmAudio.paused && bgmAudio.readyState >= 1) {
+          localStorage.setItem('mustno-bgm-time', bgmAudio.currentTime); 
+        }
       }, 1000);
 
-      window.playCurrentTrack(); 
-      updateBgmUI();
+      window.playCurrentTrack();
     })();
   </script>
 </body>
